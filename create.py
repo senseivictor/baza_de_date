@@ -1,39 +1,18 @@
 import sqlite3
-from datetime import datetime
+import json
+import time
 import uuid
+import random
+from datetime import datetime, timedelta
 
-# Connect to SQLite database
-conn = sqlite3.connect("api/database.db")
+conn = sqlite3.connect("lab1.db")
 cursor = conn.cursor()
 
-# Create tables
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users_login_info (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    platform TEXT NOT NULL DEFAULT '',
-    created_at INTEGER NOT NULL
-);
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users_additional_info (
-    user_id INTEGER PRIMARY KEY NOT NULL,
-    username TEXT NOT NULL,
-    name TEXT NOT NULL,
-    surname TEXT NOT NULL,
-    picture TEXT NOT NULL,
-    phone_number TEXT NOT NULL,
-    address TEXT NOT NULL,
-    updated_at INTEGER NOT NULL
-);
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS verification_codes (
-    email TEXT PRIMARY KEY NOT NULL,
-    code INTEGER NOT NULL,
     created_at INTEGER NOT NULL
 );
 """)
@@ -43,36 +22,9 @@ CREATE TABLE IF NOT EXISTS orders (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     order_public_id TEXT NOT NULL,
     user_id INTEGER,
+    products TEXT NOT NULL,
     order_status TEXT NOT NULL,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL,
-    is_guest BOOLEAN NOT NULL DEFAULT 1
-);
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS receipts (
-    receipt_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_public_id TEXT NOT NULL,
-    items TEXT NOT NULL,
-    total_amount REAL NOT NULL,
-    currency TEXT NOT NULL,
-    processor TEXT,
-    processor_txn_id TEXT,
-    status TEXT,
     created_at INTEGER NOT NULL
-);
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS tasks (
-    task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_id INTEGER NOT NULL,
-    order_public_id TEXT NOT NULL,
-    task_type TEXT NOT NULL,
-    result_id TEXT NOT NULL DEFAULT '',
-    created_at INTEGER NOT NULL,
-    task_status TEXT NOT NULL DEFAULT 'pending'
 );
 """)
 
@@ -80,57 +32,53 @@ cursor.execute("""
 CREATE TABLE IF NOT EXISTS products (
     product_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    description TEXT,
-    brand TEXT NOT NULL,
-    image_url TEXT NOT NULL
+    price REAL NOT NULL
 );
 """)
 
-now = int(datetime.now().timestamp())
-order_uuid = str(uuid.uuid4())
-
-cursor.execute("""
-INSERT INTO users_login_info (email, password, platform, created_at)
-VALUES ('alice@example.com', 'password123', 'email', ?)
-""", (now,))
-
-cursor.execute("""
-INSERT INTO users_additional_info (user_id, username, name, surname, picture, phone_number, address, updated_at)
-VALUES (1, 'alice_w', 'Alice', 'Wonder', 'https://example.com/pic1.jpg', '1234567890', '123 Wonderland Ave', ?)
-""", (now,))
-
-cursor.execute("""
-INSERT INTO verification_codes (email, code, created_at)
-VALUES ('alice@example.com', 123456, ?)
-""", (now,))
-
-cursor.execute("""
-INSERT INTO orders (order_public_id, user_id, order_status, created_at, updated_at, is_guest)
-VALUES (?, 1, 'pending', ?, ?, 0)
-""", (order_uuid, now, now))
-
-cursor.execute("""
-INSERT INTO receipts (order_public_id, items, total_amount, currency, processor, processor_txn_id, status, created_at)
-VALUES (?, '{"items": ["caricature"]}', 49.99, 'USD', 'Stripe', 'txn_12345', 'paid', ?)
-""", (order_uuid, now))
-
-cursor.execute("""
-INSERT INTO tasks (order_id, order_public_id, task_type, result_id, created_at, task_status)
-VALUES (1, ?, 'caricature', '', ?, 'pending')
-""", (order_uuid, now))
-
 products = [
-    ("caricature", "Custom caricature drawing", "BrandA", "https://example.com/caricature.jpg"),
-    ("song", "Personalized song creation", "BrandB", "https://example.com/song.jpg"),
-    ("voiceover", "Professional voiceover recording", "BrandC", "https://example.com/voiceover.jpg"),
+    ("Caricature", 29.99),
+    ("Voiceover", 49.99),
+    ("Song", 79.99)
 ]
 
 cursor.executemany("""
-INSERT INTO products (name, description, brand, image_url)
-VALUES (?, ?, ?, ?)
+INSERT OR IGNORE INTO products (name, price)
+VALUES (?, ?)
 """, products)
+
+now = int(time.time())
+users = [
+    ("alice@example.com", "hashed_pw1", now),
+    ("bob@example.com", "hashed_pw2", now),
+    ("charlie@example.com", "hashed_pw3", now)
+]
+
+cursor.executemany("""
+INSERT OR IGNORE INTO users_login_info (email, password, created_at)
+VALUES (?, ?, ?)
+""", users)
+
+orders = []
+
+for user_id in range(1, 4):
+    base_dates = [int(time.time() - random.randint(0, 30) * 24 * 60 * 60) for _ in range(5)]
+    for _ in range(10): # populez tabelul de comenzi cu cate 10 comenzi random pentru fiecare client
+        order_public_id = str(uuid.uuid4())
+        created_at = random.choice(base_dates)
+        selected_products = random.sample(products, k=random.randint(1, 3))
+        product_list = json.dumps([
+            {"product_id": i+1, "name": p[0], "price": p[1]} 
+            for i, p in enumerate(selected_products)
+        ])
+        orders.append((order_public_id, user_id, product_list, "finalizat", created_at))
+
+cursor.executemany("""
+INSERT INTO orders (order_public_id, user_id, products, order_status, created_at)
+VALUES (?, ?, ?, ?, ?)
+""", orders)
 
 conn.commit()
 conn.close()
 
-print("Tables created and database populated successfully!")
+print("Tabelele au fost populate cu comenzi aleatorii pe aceleași date!")
