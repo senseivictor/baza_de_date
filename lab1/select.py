@@ -1,6 +1,8 @@
 import sqlite3
+import os
 
-def get_orders_by_user_id(user_id, db_path="lab1.db"):
+def get_orders_by_user_id(user_id, db_path="lab1/lab1.db"):    
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -23,7 +25,8 @@ def get_orders_by_user_id(user_id, db_path="lab1.db"):
             "order_id": o[0],
             "order_public_id": o[1],
             "order_status": o[2],
-            "created_at": o[3],
+            "products": o[3],
+            "created_at": o[4],
         })
 
 if __name__ == "__main__":

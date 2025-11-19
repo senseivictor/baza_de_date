@@ -5,7 +5,7 @@ import uuid
 import random
 from datetime import datetime, timedelta
 
-conn = sqlite3.connect("lab1.db")
+conn = sqlite3.connect("lab1/lab1.db")
 cursor = conn.cursor()
 
 cursor.execute("""
@@ -47,6 +47,7 @@ INSERT OR IGNORE INTO products (name, price)
 VALUES (?, ?)
 """, products)
 
+
 now = int(time.time())
 users = [
     ("alice@example.com", "hashed_pw1", now),
@@ -77,4 +78,4 @@ VALUES (?, ?, ?, ?, ?)
 conn.commit()
 conn.close()
 
-print("Tabelele au fost populate cu comenzi aleatorii pe aceleași date!")
+print("Tabelele au fost create")

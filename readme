@@ -1,3 +1,9 @@
-- fisierul create.py creeaza baza de date lab1.db si creeaza si populeaza tabelele cu informatie random
-- fisierul index.php contine interfata si interogarea bazei de date si afiseaza rezultatele
-- fisierul select.py face exact ce face si fisierul php, in afara de grafice
+python -m venv .venv
+.venv/scripts/activate
+pip install uvicorn fastapi
+
+lab1:
+php -S localhost:8000 -t lab1
+
+lab2:
+uvicorn lab2.api:app --reload --port 8000

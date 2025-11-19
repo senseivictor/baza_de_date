@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Magazin Comenzi</title>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 600px;
+            margin: 30px auto;
+        }
+        .box {
+            padding: 15px;
+            border: 1px solid #aaa;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .order {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Introdu ID Utilizator</h2>
+    <div class="box">
+        <input type="number" id="userIdInput" placeholder="ex: 1">
+        <button onclick="loadOrders()">Încarcă Comenzile</button>
+    </div>
+
+    <h2>Selectează Produsele</h2>
+    <div class="box">
+        <label><input type="checkbox" value="1" class="product"> Caricature</label><br>
+        <label><input type="checkbox" value="2" class="product"> Voiceover</label><br>
+        <label><input type="checkbox" value="3" class="product"> Song</label><br><br>
+
+        <button onclick="placeOrder()">Plasează Comanda</button>
+    </div>
+
+    <h2>Comenzile Utilizatorului</h2>
+    <div class="box" id="ordersBox">Introduceți un ID utilizator.</div>
+
+<script>
+function loadOrders() {
+    const userId = document.getElementById("userIdInput").value;
+    if (!userId) {
+        alert("Introduceți un ID utilizator!");
+        return;
+    }
+
+    fetch("/get-orders?userId=" + userId)
+        .then(res => res.json())
+        .then(data => {
+            let html = "";
+
+            if (data.length === 0) {
+                html = "Nu există comenzi.";
+            } else {
+                data.forEach(o => {
+                    html += `
+                        <div class="order">
+                            <strong>ID Public:</strong> ${o.order_public_id}<br>
+                            <strong>Status:</strong> ${o.order_status}<br>
+                            <strong>Data:</strong> ${new Date(o.created_at * 1000).toLocaleString()}<br>
+                            <strong>Produse:</strong> ${o.products}
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById("ordersBox").innerHTML = html;
+        });
+}
+
+function placeOrder() {
+    const userId = document.getElementById("userIdInput").value;
+    if (!userId) {
+        alert("Introduceți un ID utilizator înainte de a plasa comanda!");
+        return;
+    }
+
+    const selected = [...document.querySelectorAll(".product:checked")].map(el => el.value);
+
+    if (selected.length === 0) {
+        alert("Selectați cel puțin un produs!");
+        return;
+    }
+
+    console.log("fdsg");
+    fetch("http://127.0.0.1:8000/process-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            user_id: userId,
+            products: selected
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Comanda a fost plasată!");
+        loadOrders();
+    });
+    console.log("fd333sg");
+}
+</script>
+
+</body>
+</html>
