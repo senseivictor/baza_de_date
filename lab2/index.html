@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Introdu Numele</title>
+    <style>
+      body {
+        font-family: Arial;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 50px;
+      }
+      input {
+        padding: 10px;
+        font-size: 18px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        width: 250px;
+      }
+      button {
+        margin-top: 15px;
+        padding: 10px 25px;
+        font-size: 18px;
+        cursor: pointer;
+        border: none;
+        border-radius: 6px;
+        background: #007bff;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Bine ai venit!</h2>
+
+    <input type="text" id="name" placeholder="Introduce numele" />
+    <button onclick="goNext()">Continuă</button>
+
+    <script>
+      async function goNext() {
+        const name = document.getElementById("name").value.trim();
+        if (!name) {
+          alert("Introduceți un nume!");
+          return;
+        }
+
+        if (name.toLowerCase() === "admin") {
+          window.location.href = "admin.html";
+          return;
+        }
+
+        const res = await fetch("http://localhost:8000/register-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+
+        const data = await res.json();
+        const userId = data.user_id;
+
+        window.location.href = `user.html?given_user_id=${userId}`;
+      }
+    </script>
+  </body>
+</html>

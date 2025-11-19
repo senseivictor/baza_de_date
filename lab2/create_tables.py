@@ -1,9 +1,4 @@
 import sqlite3
-import json
-import time
-import uuid
-import random
-from datetime import datetime, timedelta
 
 conn = sqlite3.connect("lab2/lab2.db")
 cursor = conn.cursor()
@@ -11,8 +6,7 @@ cursor = conn.cursor()
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users_login_info (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     created_at INTEGER NOT NULL
 );
 """)

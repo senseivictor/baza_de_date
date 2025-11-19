@@ -1,113 +1,85 @@
 <!DOCTYPE html>
 <html lang="ro">
-<head>
-    <meta charset="UTF-8">
-    <title>Magazin Comenzi</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Page</title>
     <style>
-        body {
-            font-family: Arial;
-            max-width: 600px;
-            margin: 30px auto;
-        }
-        .box {
-            padding: 15px;
-            border: 1px solid #aaa;
-            margin-bottom: 20px;
-            border-radius: 8px;
-        }
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-        .order {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        padding: 30px;
+        background: #f9f9f9;
+      }
+      #result {
+        background: white;
+        padding: 15px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        white-space: pre-wrap;
+        margin-top: 20px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <h2 id="greeting"></h2>
 
-    <h2>Introdu ID Utilizator</h2>
-    <div class="box">
-        <input type="number" id="userIdInput" placeholder="ex: 1">
-        <button onclick="loadOrders()">Încarcă Comenzile</button>
+    <h3>Alege Produse</h3>
+
+    <div>
+      <label><input type="checkbox" value="1" /> Caricature</label><br />
+      <label><input type="checkbox" value="2" /> Voiceover</label><br />
+      <label><input type="checkbox" value="3" /> Song</label><br />
     </div>
 
-    <h2>Selectează Produsele</h2>
-    <div class="box">
-        <label><input type="checkbox" value="1" class="product"> Caricature</label><br>
-        <label><input type="checkbox" value="2" class="product"> Voiceover</label><br>
-        <label><input type="checkbox" value="3" class="product"> Song</label><br><br>
+    <button id="placeOrder">Plasează comanda</button>
 
-        <button onclick="placeOrder()">Plasează Comanda</button>
-    </div>
+    <h3>Comenzile tale</h3>
+    <div id="result"></div>
 
-    <h2>Comenzile Utilizatorului</h2>
-    <div class="box" id="ordersBox">Introduceți un ID utilizator.</div>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const USER_ID = urlParams.get("given_user_id") || "utilizator";
+      document.getElementById("greeting").textContent = `Salut ${name}`;
 
-<script>
-function loadOrders() {
-    const userId = document.getElementById("userIdInput").value;
-    if (!userId) {
-        alert("Introduceți un ID utilizator!");
-        return;
-    }
+      document
+        .getElementById("placeOrder")
+        .addEventListener("click", async () => {
+          const selected = [
+            ...document.querySelectorAll("input[type=checkbox]:checked"),
+          ].map((c) => parseInt(c.value));
 
-    fetch("/get-orders?userId=" + userId)
-        .then(res => res.json())
-        .then(data => {
-            let html = "";
+          if (selected.length === 0) {
+            alert("Selectați cel puțin un produs!");
+            return;
+          }
 
-            if (data.length === 0) {
-                html = "Nu există comenzi.";
-            } else {
-                data.forEach(o => {
-                    html += `
-                        <div class="order">
-                            <strong>ID Public:</strong> ${o.order_public_id}<br>
-                            <strong>Status:</strong> ${o.order_status}<br>
-                            <strong>Data:</strong> ${new Date(o.created_at * 1000).toLocaleString()}<br>
-                            <strong>Produse:</strong> ${o.products}
-                        </div>
-                    `;
-                });
-            }
+          const response = await fetch("http://localhost:8000/process-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: USER_ID,
+              products: selected,
+            }),
+          });
 
-            document.getElementById("ordersBox").innerHTML = html;
+          const data = await response.json();
+          alert("Comanda a fost plasată!");
+          loadOrders();
         });
-}
 
-function placeOrder() {
-    const userId = document.getElementById("userIdInput").value;
-    if (!userId) {
-        alert("Introduceți un ID utilizator înainte de a plasa comanda!");
-        return;
-    }
+      async function loadOrders() {
+        const res = await fetch(
+          `http://localhost:8000/get-orders?userId=${USER_ID}`
+        );
+        const data = await res.json();
+        document.getElementById("result").textContent = JSON.stringify(
+          data,
+          null,
+          2
+        );
+      }
 
-    const selected = [...document.querySelectorAll(".product:checked")].map(el => el.value);
-
-    if (selected.length === 0) {
-        alert("Selectați cel puțin un produs!");
-        return;
-    }
-
-    console.log("fdsg");
-    fetch("http://127.0.0.1:8000/process-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            user_id: userId,
-            products: selected
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert("Comanda a fost plasată!");
-        loadOrders();
-    });
-    console.log("fd333sg");
-}
-</script>
-
-</body>
+      loadOrders();
+    </script>
+  </body>
 </html>

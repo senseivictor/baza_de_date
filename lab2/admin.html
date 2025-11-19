@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Panou Admin</title>
+
+    <style>
+      body {
+        font-family: Arial;
+        padding: 40px;
+        background-color: #f4f7f9;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+      }
+
+      button {
+        padding: 10px 20px;
+        margin: 10px 5px;
+        cursor: pointer;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        transition: background-color 0.3s ease, transform 0.1s ease;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+      }
+
+      pre {
+        background: #f4f4f4;
+        padding: 15px;
+        border-radius: 8px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        min-height: 100px;
+        border: 1px solid #ddd;
+      }
+
+      #chartContainer {
+        margin-top: 30px;
+        padding: 20px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        background-color: #fff;
+        text-align: center;
+      }
+
+      #ordersChart {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 50px;
+        font-size: 18px;
+        color: #6c757d;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>Bine ai venit, Admin!</h2>
+
+      <button onclick="getLatestOrder()">Ultima comandă</button>
+      <button onclick="getCompleted()">Comenzi finalizate</button>
+      <button onclick="getPending()">Comenzi în așteptare</button>
+      <button onclick="getWeeklyGraph()">Grafic ultimele 7 zile</button>
+
+      <h3>Rezultat:</h3>
+      <pre id="result"></pre>
+
+      <div id="chartContainer" style="display: none">
+        <canvas id="ordersChart" width="800" height="400"></canvas>
+      </div>
+    </div>
+
+    <script>
+      const API = "http://localhost:8000";
+
+      async function fetchData(route, retries = 3) {
+        const url = `${API}${route}`;
+        document.getElementById("result").textContent =
+          "Se încarcă datele de la API...";
+        document.getElementById("chartContainer").style.display = "none";
+
+        for (let i = 0; i < retries; i++) {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(`Eroare HTTP: ${response.status}`);
+            }
+            return await response.json();
+          } catch (error) {
+            console.error(
+              `Eroare la solicitare pentru ${route} (Încercarea ${i + 1}):`,
+              error
+            );
+            if (i < retries - 1) {
+              const delay = Math.pow(2, i) * 1000;
+              await new Promise((resolve) => setTimeout(resolve, delay));
+            } else {
+              document.getElementById(
+                "result"
+              ).textContent = `Eroare: Nu s-au putut prelua datele de la ${url} după ${retries} încercări. ${error.message}`;
+              throw error;
+            }
+          }
+        }
+      }
+
+      async function getLatestOrder() {
+        try {
+          const data = await fetchData("/admin/latest-order");
+          document.getElementById("result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        } catch (e) {}
+      }
+
+      async function getCompleted() {
+        try {
+          const data = await fetchData("/admin/completed-orders");
+          document.getElementById("result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        } catch (e) {}
+      }
+
+      async function getPending() {
+        try {
+          const data = await fetchData("/admin/pending-orders");
+          document.getElementById("result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        } catch (e) {}
+      }
+
+      function drawOrderChart(dates, dataPoints) {
+        const canvas = document.getElementById("ordersChart");
+        const containerWidth =
+          document.getElementById("chartContainer").clientWidth;
+
+        canvas.width = Math.min(containerWidth, 800);
+        canvas.height = 400;
+
+        const ctx = canvas.getContext("2d");
+
+        const padding = 50;
+        const chartWidth = canvas.width - 2 * padding;
+        const chartHeight = canvas.height - 2 * padding;
+        const barWidth = (chartWidth / dataPoints.length) * 0.7;
+
+        const maxOrders = Math.max(...dataPoints) || 1;
+        const scaleY = chartHeight / maxOrders;
+
+        const formatDayLabel = (dateStr) => {
+          const date = new Date(dateStr + "T00:00:00");
+          if (isNaN(date)) return dateStr;
+          return date.toLocaleDateString("ro-RO", { weekday: "short" });
+        };
+
+        const dayLabels = dates.map(formatDayLabel);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.beginPath();
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 1;
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, chartHeight + padding);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(padding, chartHeight + padding);
+        ctx.lineTo(chartWidth + padding, chartHeight + padding);
+        ctx.stroke();
+
+        ctx.fillStyle = "#007bff";
+        ctx.font = "12px Arial";
+        ctx.textAlign = "center";
+
+        dataPoints.forEach((value, index) => {
+          const x =
+            padding +
+            (index * chartWidth) / dataPoints.length +
+            chartWidth / dataPoints.length / 2;
+          const barHeight = value * scaleY;
+          const y = chartHeight + padding - barHeight;
+
+          ctx.fillRect(x - barWidth / 2, y, barWidth, barHeight);
+
+          ctx.fillStyle = "#333";
+          ctx.fillText(value, x, y - 5);
+
+          ctx.fillStyle = "#6c757d";
+          ctx.fillText(dayLabels[index], x, chartHeight + padding + 20);
+        });
+
+        ctx.fillStyle = "#333";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "right";
+
+        ctx.fillText(maxOrders, padding - 5, padding + 5);
+        ctx.fillText("0", padding - 5, chartHeight + padding + 5);
+
+        ctx.textAlign = "center";
+        ctx.fillText("Număr de Comenzi pe Zi", canvas.width / 2, 20);
+      }
+
+      async function getWeeklyGraph() {
+        try {
+          const data = await fetchData("/admin/orders-last-week");
+
+          document.getElementById("result").textContent = "";
+          document.getElementById("chartContainer").style.display = "block";
+
+          if (data && data.dates && data.counts) {
+            drawOrderChart(data.dates, data.counts);
+          } else {
+            document.getElementById("chartContainer").style.display = "none";
+            document.getElementById("result").textContent =
+              "Eroare: Datele pentru grafic nu sunt în formatul așteptat.";
+          }
+        } catch (e) {}
+      }
+
+      window.addEventListener("resize", () => {
+        if (
+          document.getElementById("chartContainer").style.display !== "none"
+        ) {
+        }
+      });
+    </script>
+  </body>
+</html>
