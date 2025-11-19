@@ -66,11 +66,7 @@ for user_id in range(1, 4):
     for _ in range(10): # populez tabelul de comenzi cu cate 10 comenzi random pentru fiecare client
         order_public_id = str(uuid.uuid4())
         created_at = random.choice(base_dates)
-        selected_products = random.sample(products, k=random.randint(1, 3))
-        product_list = json.dumps([
-            {"product_id": i+1, "name": p[0], "price": p[1]} 
-            for i, p in enumerate(selected_products)
-        ])
+        product_list = json.dumps([random.randint(1, 3) for _ in range(3)])
         orders.append((order_public_id, user_id, product_list, "finalizat", created_at))
 
 cursor.executemany("""

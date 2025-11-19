@@ -1,3 +1,3 @@
-- fisierul create.py creeaza baza de date lab1.db si creeaza si populeaza tabelele ci informatie random
+- fisierul create.py creeaza baza de date lab1.db si creeaza si populeaza tabelele cu informatie random
 - fisierul index.php contine interfata si interogarea bazei de date si afiseaza rezultatele
 - fisierul select.py face exact ce face si fisierul php, in afara de grafice
