@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import sqlite3
+import pymysql
 import uuid
 import time
 from datetime import datetime, timedelta
 import json
+from .db_config import DB_CONFIG
 
 app = FastAPI()
 
@@ -16,12 +17,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_PATH = "lab2/lab2.db"
-
 
 def get_db():
-    return sqlite3.connect(DB_PATH)
-
+    return pymysql.connect(**DB_CONFIG)
 
 class OrderRequest(BaseModel):
     user_id: int
@@ -39,8 +37,9 @@ def process_order(order: OrderRequest):
     created_at = int(time.time())
 
     cursor.execute("""
-        INSERT INTO orders (order_public_id, user_id, products, order_status, created_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO orders 
+        (order_public_id, user_id, products, order_status, created_at)
+        VALUES (%s, %s, %s, %s, %s)
     """, (
         order_public_id,
         order.user_id,
@@ -67,59 +66,58 @@ def get_orders(userId: int):
     cursor.execute("""
         SELECT order_id, order_public_id, user_id, products, order_status, created_at
         FROM orders
-        WHERE user_id = ?
+        WHERE user_id = %s
         ORDER BY created_at DESC
     """, (userId,))
 
     rows = cursor.fetchall()
 
     cursor.execute("SELECT product_id, name FROM products")
-    product_lookup = {row[0]: row[1] for row in cursor.fetchall()} # creeaza dictionar cheie - valoare
+    product_lookup = {row["product_id"]: row["name"] for row in cursor.fetchall()}
 
     conn.close()
 
     data = []
     for r in rows:
-        product_ids = json.loads(r[3])
-
+        product_ids = json.loads(r["products"])
         product_names = [product_lookup.get(pid, "Necunoscut") for pid in product_ids]
-        product_string = ", ".join(product_names)
 
         data.append({
-            "order_id": r[0],
-            "order_public_id": r[1],
-            "user_id": r[2],
-            "products": product_string,
-            "order_status": r[4],
-            "created_at": r[5]
+            "order_id": r["order_id"],
+            "order_public_id": r["order_public_id"],
+            "user_id": r["user_id"],
+            "products": ", ".join(product_names),
+            "order_status": r["order_status"],
+            "created_at": r["created_at"]
         })
 
     return data
+
 
 @app.post("/register-user")
 def register_user(req: RegisterRequest):
     conn = get_db()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT user_id FROM users_login_info WHERE name = ?", (req.name,))
+    cursor.execute("SELECT user_id FROM users_login_info WHERE name = %s", (req.name,))
     row = cursor.fetchone()
 
-    if row: 
-        user_id = row[0]
+    if row:
+        user_id = row["user_id"]
     else:
-        created = int(time.time())
+        created_at = int(time.time())
         cursor.execute(
-            "INSERT INTO users_login_info (name, created_at) VALUES (?, ?)",
-            (req.name, created)
+            "INSERT INTO users_login_info (name, created_at) VALUES (%s, %s)",
+            (req.name, created_at)
         )
-        user_id = cursor.lastrowid
         conn.commit()
+        user_id = cursor.lastrowid
 
     conn.close()
 
     return {
         "status": "ok",
-        "user_id": user_id
+        "user_id": user_id,
     }
 
 
@@ -127,10 +125,12 @@ def register_user(req: RegisterRequest):
 def latest_order():
     conn = get_db()
     cursor = conn.cursor()
+
     cursor.execute("""
         SELECT * FROM orders ORDER BY created_at DESC LIMIT 1
     """)
     row = cursor.fetchone()
+
     conn.close()
     return row
 
@@ -139,10 +139,10 @@ def latest_order():
 def completed_orders():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("""
-        SELECT * FROM orders WHERE order_status = 'completed'
-    """)
+
+    cursor.execute("SELECT * FROM orders WHERE order_status = 'completed'")
     rows = cursor.fetchall()
+
     conn.close()
     return rows
 
@@ -151,10 +151,10 @@ def completed_orders():
 def pending_orders():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("""
-        SELECT * FROM orders WHERE order_status = 'pending'
-    """)
+
+    cursor.execute("SELECT * FROM orders WHERE order_status = 'pending'")
     rows = cursor.fetchall()
+
     conn.close()
     return rows
 
@@ -167,7 +167,7 @@ def orders_last_week():
     one_week_ago = int(time.time()) - 7 * 86400
 
     cursor.execute("""
-        SELECT created_at FROM orders WHERE created_at >= ?
+        SELECT created_at FROM orders WHERE created_at >= %s
     """, (one_week_ago,))
 
     rows = cursor.fetchall()
@@ -178,8 +178,8 @@ def orders_last_week():
         day = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
         counts[day] = 0
 
-    for (ts,) in rows:
-        day = datetime.fromtimestamp(ts).strftime("%Y-%m-%d")
+    for row in rows:
+        day = datetime.fromtimestamp(row["created_at"]).strftime("%Y-%m-%d")
         if day in counts:
             counts[day] += 1
 

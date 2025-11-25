@@ -58,7 +58,7 @@
         const data = await res.json();
         const userId = data.user_id;
 
-        window.location.href = `user.html?given_user_id=${userId}`;
+        window.location.href = `user.html?given_user_id=${userId}&name=${name}`;
       }
     </script>
   </body>

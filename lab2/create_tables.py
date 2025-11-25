@@ -1,35 +1,41 @@
-import sqlite3
+import pymysql
+from db_config import DB_CONFIG
 
-conn = sqlite3.connect("lab2/lab2.db")
+conn = pymysql.connect(**DB_CONFIG)
+
 cursor = conn.cursor()
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users_login_info (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    created_at INTEGER NOT NULL
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    created_at INT NOT NULL
 );
 """)
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS orders (
-    order_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    order_public_id TEXT NOT NULL,
-    user_id INTEGER,
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_public_id VARCHAR(255) NOT NULL,
+    user_id INT,
     products TEXT NOT NULL,
-    order_status TEXT NOT NULL,
-    created_at INTEGER NOT NULL
+    order_status VARCHAR(255) NOT NULL,
+    created_at INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users_login_info(user_id)
 );
 """)
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS products (
-    product_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    price REAL NOT NULL
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    price DECIMAL(10,2) NOT NULL
 );
 """)
 
+# -----------------------------
+# Insert initial products
+# -----------------------------
 products = [
     ("Caricature", 29.99),
     ("Voiceover", 49.99),
@@ -37,12 +43,11 @@ products = [
 ]
 
 cursor.executemany("""
-INSERT OR IGNORE INTO products (name, price)
-VALUES (?, ?)
+INSERT IGNORE INTO products (name, price)
+VALUES (%s, %s)
 """, products)
-
 
 conn.commit()
 conn.close()
 
-print("Tabelele au fost create")
+print("MySQL tables created and products inserted.")

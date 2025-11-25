@@ -1,9 +1,13 @@
 python -m venv .venv
 .venv/scripts/activate
-pip install uvicorn fastapi
+pip install uvicorn fastapi pymysql
 
 lab1:
 php -S localhost:8000 -t lab1
 
 lab2:
+(add the xampp mysql bin folder to path and open vscode)
+mysql -u root
+CREATE DATABASE lab2;
+exit
 uvicorn lab2.api:app --reload --port 8000

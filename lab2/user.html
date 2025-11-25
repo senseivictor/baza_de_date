@@ -3,43 +3,233 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User Page</title>
+    <title>Comenzi Servicii Digitale</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 30px;
-        background: #f9f9f9;
+      :root {
+        --primary-color: #007bff;
+        --secondary-color: #f8f9fa;
+        --text-color: #343a40;
+        --success-color: #28a745;
       }
-      #result {
+
+      body {
+        font-family: "Inter", sans-serif;
+        padding: 20px;
+        background: var(--secondary-color);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      .main-container {
+        width: 100%;
+        max-width: 600px;
+        margin-top: 50px;
         background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dee2e6;
+      }
+
+      h2 {
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-bottom: 5px;
+        border-bottom: 3px solid var(--primary-color);
+        padding-bottom: 10px;
+      }
+
+      h3 {
+        margin-top: 30px;
+        color: var(--text-color);
+        font-size: 1.4rem;
+        border-left: 5px solid #ffc107;
+        padding-left: 10px;
+      }
+
+      .product-list {
+        margin-top: 15px;
         padding: 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+        padding: 8px;
+        background: white;
         border-radius: 6px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.2s;
+        cursor: pointer;
+        font-size: 1.1rem;
+      }
+
+      label:hover {
+        background-color: #e2f0ff;
+      }
+
+      input[type="checkbox"] {
+        margin-right: 10px;
+        transform: scale(1.2);
+        accent-color: var(--primary-color);
+      }
+
+      #placeOrder {
+        width: 100%;
+        padding: 15px;
+        margin-top: 25px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.1s;
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+      }
+
+      #placeOrder:hover {
+        background-color: #0056b3;
+        transform: translateY(-1px);
+      }
+
+      #result {
+        background: #f4f4f4;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
         white-space: pre-wrap;
-        margin-top: 20px;
+        margin-top: 15px;
+        font-family: monospace;
+        min-height: 100px;
+        overflow-x: auto;
+      }
+
+      /* Modal Style for Alerts */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        max-width: 90%;
+        width: 350px;
+        text-align: center;
+        transform: scale(0.9);
+        transition: transform 0.3s ease-out;
+      }
+
+      .modal-content.show {
+        transform: scale(1);
+      }
+
+      .modal-content h4 {
+        color: var(--success-color);
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+      }
+
+      .modal-content.error h4 {
+        color: #dc3545;
+      }
+
+      .modal-button {
+        padding: 10px 20px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 15px;
       }
     </style>
   </head>
   <body>
-    <h2 id="greeting"></h2>
+    <div class="main-container">
+      <h2 id="greeting"></h2>
 
-    <h3>Alege Produse</h3>
+      <h3>Alege Produse</h3>
 
-    <div>
-      <label><input type="checkbox" value="1" /> Caricature</label><br />
-      <label><input type="checkbox" value="2" /> Voiceover</label><br />
-      <label><input type="checkbox" value="3" /> Song</label><br />
+      <div class="product-list">
+        <label><input type="checkbox" value="1" /> Caricatură digitală</label
+        ><br />
+        <label><input type="checkbox" value="2" /> Voiceover profesional</label
+        ><br />
+        <label><input type="checkbox" value="3" /> Compoziție muzicală</label
+        ><br />
+      </div>
+
+      <button id="placeOrder">Plasează comanda</button>
+
+      <h3>Comenzile tale salvate</h3>
+      <div id="result">Se încarcă comenzile...</div>
     </div>
 
-    <button id="placeOrder">Plasează comanda</button>
-
-    <h3>Comenzile tale</h3>
-    <div id="result"></div>
+    <div id="customModal" class="modal-overlay" onclick="closeModal(event)">
+      <div id="modalContent" class="modal-content">
+        <h4 id="modalTitle"></h4>
+        <p id="modalMessage"></p>
+        <button
+          class="modal-button"
+          onclick="document.getElementById('customModal').style.display='none'"
+        >
+          Închide
+        </button>
+      </div>
+    </div>
 
     <script>
       const urlParams = new URLSearchParams(window.location.search);
-      const USER_ID = urlParams.get("given_user_id") || "utilizator";
-      document.getElementById("greeting").textContent = `Salut ${name}`;
+      const USER_ID = urlParams.get("given_user_id") || "guest_user_12345";
+      const USER_NAME = urlParams.get("name") || "username";
+      const API_URL = "http://localhost:8000";
+
+      document.getElementById("greeting").textContent = `Salut, ${USER_NAME}!`;
+
+      function showModal(title, message, isSuccess = true) {
+        const modalOverlay = document.getElementById("customModal");
+        const modalContent = document.getElementById("modalContent");
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalMessage").textContent = message;
+
+        modalContent.classList.remove("error");
+        modalContent.classList.remove("success");
+
+        if (isSuccess) {
+          document.getElementById("modalTitle").style.color =
+            "var(--success-color)";
+        } else {
+          document.getElementById("modalTitle").style.color = "#dc3545";
+          modalContent.classList.add("error");
+        }
+
+        modalOverlay.style.display = "flex";
+        setTimeout(() => modalContent.classList.add("show"), 10);
+      }
+
+      function closeModal(event) {
+        if (event.target.id === "customModal") {
+          document.getElementById("customModal").style.display = "none";
+        }
+      }
 
       document
         .getElementById("placeOrder")
@@ -49,34 +239,62 @@
           ].map((c) => parseInt(c.value));
 
           if (selected.length === 0) {
-            alert("Selectați cel puțin un produs!");
+            showModal("Eroare", "Selectați cel puțin un produs!", false);
             return;
           }
 
-          const response = await fetch("http://localhost:8000/process-order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              user_id: USER_ID,
-              products: selected,
-            }),
-          });
+          try {
+            const response = await fetch(`${API_URL}/process-order`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                user_id: USER_ID,
+                products: selected,
+              }),
+            });
 
-          const data = await response.json();
-          alert("Comanda a fost plasată!");
-          loadOrders();
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({
+                message: "Eroare necunoscută la plasarea comenzii.",
+              }));
+              throw new Error(
+                errorData.detail || "Eroare la procesarea comenzii."
+              );
+            }
+
+            await response.json();
+            showModal(
+              "Comandă Plasată",
+              "Comanda a fost înregistrată cu succes!",
+              true
+            );
+            loadOrders();
+          } catch (error) {
+            console.error("Eroare la plasarea comenzii:", error);
+            showModal("Eroare de Server", error.message, false);
+          }
         });
 
       async function loadOrders() {
-        const res = await fetch(
-          `http://localhost:8000/get-orders?userId=${USER_ID}`
-        );
-        const data = await res.json();
-        document.getElementById("result").textContent = JSON.stringify(
-          data,
-          null,
-          2
-        );
+        document.getElementById("result").textContent = "Se încarcă...";
+        try {
+          const res = await fetch(`${API_URL}/get-orders?userId=${USER_ID}`);
+
+          if (!res.ok) {
+            throw new Error(`Eroare HTTP: ${res.status}`);
+          }
+
+          const data = await res.json();
+          document.getElementById("result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        } catch (error) {
+          document.getElementById(
+            "result"
+          ).textContent = `Eroare la încărcarea comenzilor: ${error.message}`;
+        }
       }
 
       loadOrders();
