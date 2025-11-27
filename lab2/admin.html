@@ -3,18 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <title>Panou Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
       body {
         font-family: Arial;
-        padding: 40px;
+        padding: 20px;
         background-color: #f4f7f9;
         color: #333;
       }
 
       .container {
         max-width: 1200px;
-        margin: 0 auto;
+        margin: 20px auto;
         background: #fff;
         padding: 30px;
         border-radius: 12px;
@@ -28,7 +29,47 @@
         margin-bottom: 20px;
       }
 
-      button {
+      h3 {
+        margin-top: 30px;
+        color: #495057;
+      }
+
+      /* Navigatie Tab-uri */
+      .nav-tabs {
+        margin-bottom: 20px;
+        display: flex;
+        border-bottom: 2px solid #ced4da;
+      }
+
+      .nav-tabs button {
+        padding: 10px 20px;
+        background: none;
+        color: #495057;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.3s, color 0.3s;
+        margin: 0 5px 0 0;
+        transform: none;
+      }
+
+      .nav-tabs button:hover {
+        background-color: #e9ecef;
+        transform: none;
+      }
+
+      .nav-tabs button.active {
+        background-color: #fff;
+        color: #007bff;
+        border: 1px solid #ced4da;
+        border-bottom: 3px solid #007bff;
+        margin-bottom: -2px;
+        box-shadow: none;
+      }
+
+      /* Stiluri pentru butoane de actiune (inclusiv cele vechi) */
+      .action-button {
         padding: 10px 20px;
         margin: 10px 5px;
         cursor: pointer;
@@ -40,9 +81,69 @@
         transition: background-color 0.3s ease, transform 0.1s ease;
       }
 
-      button:hover {
+      .action-button:hover {
         background-color: #0056b3;
         transform: translateY(-2px);
+      }
+      
+      /* Stiluri CRUD */
+      .crud-form-section {
+        border: 1px solid #ced4da;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background: #f8f9fa;
+      }
+      
+      .crud-form-section h4 {
+          margin-top: 0;
+          padding-bottom: 10px;
+          border-bottom: 1px dashed #ced4da;
+          color: #212529;
+      }
+      
+      /* Container flexibil pentru câmpuri orizontale */
+      .form-row {
+        display: flex;
+        flex-wrap: wrap; 
+        gap: 20px; 
+        margin-bottom: 15px;
+      }
+
+      .form-group {
+        flex: 1; 
+        min-width: 200px; 
+        margin-bottom: 10px;
+      }
+
+      .form-group label {
+          display: block; 
+          margin-top: 0;
+          font-weight: 600;
+          margin-bottom: 5px;
+      }
+
+      .crud-form-section input[type="text"], 
+      .crud-form-section input[type="number"] {
+          width: 100%; 
+          padding: 8px 10px;
+          margin-top: 0; 
+          border: 1px solid #ced4da;
+          border-radius: 4px;
+          box-sizing: border-box; 
+      }
+      
+      .crud-form-section button {
+          margin-top: 15px;
+      }
+      
+      /* Culoare specifică pentru Ștergere */
+      .delete-button {
+          background-color: #dc3545;
+      }
+      
+      .delete-button:hover {
+          background-color: #c82333;
       }
 
       pre {
@@ -53,6 +154,7 @@
         word-break: break-all;
         min-height: 100px;
         border: 1px solid #ddd;
+        margin-top: 15px;
       }
 
       #chartContainer {
@@ -68,41 +170,107 @@
         max-width: 100%;
         height: auto;
       }
-
-      .loading {
-        text-align: center;
-        padding: 50px;
-        font-size: 18px;
-        color: #6c757d;
+      
+      .warning-note {
+          padding: 10px;
+          margin-bottom: 15px;
+          background-color: #fff3cd;
+          border: 1px solid #ffeeba;
+          color: #856404;
+          border-radius: 4px;
+          font-size: 0.9em;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+          .nav-tabs {
+              flex-direction: column;
+          }
+          .nav-tabs button {
+              width: 100%;
+              margin: 5px 0;
+          }
+          /* Pe ecrane mici, câmpurile CRUD se vor așeza pe verticală */
+          .form-group {
+              min-width: 100%;
+          }
       }
     </style>
   </head>
 
   <body>
     <div class="container">
-      <h2>Bine ai venit, Admin!</h2>
+      <h2>Panou de Administrare</h2>
 
-      <button onclick="getLatestOrder()">Ultima comandă</button>
-      <button onclick="getCompleted()">Comenzi finalizate</button>
-      <button onclick="getPending()">Comenzi în așteptare</button>
-      <button onclick="getWeeklyGraph()">Grafic ultimele 7 zile</button>
+      <div class="nav-tabs">
+        <button class="tab-button active" id="tabGeneral" onclick="switchView('general', this)">Analiză Generală</button>
+        <button class="tab-button" id="tabCrud" onclick="switchView('crud', this)">Administrare Date (CRUD)</button>
+      </div>
 
-      <h3>Rezultat:</h3>
-      <pre id="result"></pre>
+      <!-- VIZUALIZARE 1: ANALIZĂ GENERALĂ -->
+      <div id="generalView">
+        <p>Vizualizare date agregate și statistici despre comenzi.</p>
+        <button class="action-button" onclick="getLatestOrder()">Ultima comandă</button>
+        <button class="action-button" onclick="getCompleted()">Comenzi finalizate</button>
+        <button class="action-button" onclick="getPending()">Comenzi în așteptare</button>
+        <button class="action-button" onclick="getWeeklyGraph()">Grafic ultimele 7 zile</button>
+        
+        <h3>Rezultat Analiză:</h3>
+        <pre id="result">Apasă un buton pentru a vedea rezultatele.</pre>
 
-      <div id="chartContainer" style="display: none">
-        <canvas id="ordersChart" width="800" height="400"></canvas>
+        <div id="chartContainer" style="display: none">
+          <canvas id="ordersChart" width="800" height="400"></canvas>
+        </div>
+      </div>
+      
+      <!-- VIZUALIZARE 2: CRUD OPERAȚII -->
+      <div id="crudView" style="display: none;">
+        <h3>Selectează o Tabelă pentru Administrare:</h3>
+        <button class="action-button" onclick="showCrudTable('users_login_info')">Utilizatori</button>
+        <button class="action-button" onclick="showCrudTable('products')">Produse</button>
+        <button class="action-button" onclick="showCrudTable('orders')">Comenzi</button>
+        
+        <div id="crudFormsContainer" style="margin-top: 20px;">
+          <p>Alege o tabelă pentru a gestiona înregistrările (Adăugare, Modificare, Ștergere).</p>
+        </div>
+        
+        <h3>Rezultat Operații CRUD:</h3>
+        <pre id="crudResult"></pre>
       </div>
     </div>
 
     <script>
       const API = "http://localhost:8000";
+      const resultElement = document.getElementById("result");
+      const crudResultElement = document.getElementById("crudResult");
+      const chartContainer = document.getElementById("chartContainer");
+      const generalView = document.getElementById("generalView");
+      const crudView = document.getElementById("crudView");
+      const crudFormsContainer = document.getElementById("crudFormsContainer");
+
+      // --- Funcții de Navigare ---
+      
+      function switchView(viewName, element) {
+          const allTabs = document.querySelectorAll('.tab-button');
+          allTabs.forEach(tab => tab.classList.remove('active'));
+          element.classList.add('active');
+          
+          if (viewName === 'general') {
+              generalView.style.display = 'block';
+              crudView.style.display = 'none';
+          } else if (viewName === 'crud') {
+              generalView.style.display = 'none';
+              crudView.style.display = 'block';
+              crudResultElement.textContent = '';
+          }
+      }
+
+      // --- Funcții de Utilitate API și Analiză Generală (Codul vechi modificat) ---
 
       async function fetchData(route, retries = 3) {
         const url = `${API}${route}`;
-        document.getElementById("result").textContent =
-          "Se încarcă datele de la API...";
-        document.getElementById("chartContainer").style.display = "none";
+        resultElement.textContent = "Se încarcă datele de la API...";
+        chartContainer.style.display = "none";
 
         for (let i = 0; i < retries; i++) {
           try {
@@ -112,17 +280,12 @@
             }
             return await response.json();
           } catch (error) {
-            console.error(
-              `Eroare la solicitare pentru ${route} (Încercarea ${i + 1}):`,
-              error
-            );
+            console.error(`Eroare la solicitare pentru ${route} (Încercarea ${i + 1}):`, error);
             if (i < retries - 1) {
               const delay = Math.pow(2, i) * 1000;
               await new Promise((resolve) => setTimeout(resolve, delay));
             } else {
-              document.getElementById(
-                "result"
-              ).textContent = `Eroare: Nu s-au putut prelua datele de la ${url} după ${retries} încercări. ${error.message}`;
+              resultElement.textContent = `Eroare: Nu s-au putut prelua datele de la ${url} după ${retries} încercări. ${error.message}`;
               throw error;
             }
           }
@@ -132,40 +295,27 @@
       async function getLatestOrder() {
         try {
           const data = await fetchData("/admin/latest-order");
-          document.getElementById("result").textContent = JSON.stringify(
-            data,
-            null,
-            2
-          );
+          resultElement.textContent = JSON.stringify(data, null, 2);
         } catch (e) {}
       }
 
       async function getCompleted() {
         try {
           const data = await fetchData("/admin/completed-orders");
-          document.getElementById("result").textContent = JSON.stringify(
-            data,
-            null,
-            2
-          );
+          resultElement.textContent = JSON.stringify(data, null, 2);
         } catch (e) {}
       }
 
       async function getPending() {
         try {
           const data = await fetchData("/admin/pending-orders");
-          document.getElementById("result").textContent = JSON.stringify(
-            data,
-            null,
-            2
-          );
+          resultElement.textContent = JSON.stringify(data, null, 2);
         } catch (e) {}
       }
 
       function drawOrderChart(dates, dataPoints) {
         const canvas = document.getElementById("ordersChart");
-        const containerWidth =
-          document.getElementById("chartContainer").clientWidth;
+        const containerWidth = chartContainer.clientWidth;
 
         canvas.width = Math.min(containerWidth, 800);
         canvas.height = 400;
@@ -225,11 +375,6 @@
 
         ctx.fillStyle = "#333";
         ctx.font = "14px Arial";
-        ctx.textAlign = "right";
-
-        ctx.fillText(maxOrders, padding - 5, padding + 5);
-        ctx.fillText("0", padding - 5, chartHeight + padding + 5);
-
         ctx.textAlign = "center";
         ctx.fillText("Număr de Comenzi pe Zi", canvas.width / 2, 20);
       }
@@ -238,24 +383,279 @@
         try {
           const data = await fetchData("/admin/orders-last-week");
 
-          document.getElementById("result").textContent = "";
-          document.getElementById("chartContainer").style.display = "block";
+          resultElement.textContent = "";
+          chartContainer.style.display = "block";
 
           if (data && data.dates && data.counts) {
             drawOrderChart(data.dates, data.counts);
           } else {
-            document.getElementById("chartContainer").style.display = "none";
-            document.getElementById("result").textContent =
-              "Eroare: Datele pentru grafic nu sunt în formatul așteptat.";
+            chartContainer.style.display = "none";
+            resultElement.textContent = "Eroare: Datele pentru grafic nu sunt în formatul așteptat.";
           }
         } catch (e) {}
       }
 
       window.addEventListener("resize", () => {
-        if (
-          document.getElementById("chartContainer").style.display !== "none"
-        ) {
+        if (chartContainer.style.display !== "none") {
         }
+      });
+      
+      // --- Funcții CRUD (Simulare) ---
+      
+      const CRUD_API = "/admin/crud";
+
+      // Funcție ajutătoare pentru etichete în română
+      function getRomanianLabels(tableName, actionType) {
+          const actions = {
+              'add': 'Adaugă',
+              'update': 'Actualizează',
+              'delete': 'Șterge'
+          };
+          const tables = {
+              'users_login_info': 'Utilizator',
+              'products': 'Produs',
+              'orders': 'Comandă'
+          };
+          
+          const actionLabel = actions[actionType] || actionType;
+          const tableLabel = tables[tableName] || tableName;
+          
+          return { actionLabel, tableLabel };
+      }
+      
+      async function submitCrudOperation(action, tableName, payload) {
+          crudResultElement.textContent = `Se execută operația ${action} pe tabela ${tableName}...`;
+          
+          try {
+              const url = `${API}${CRUD_API}/${tableName}/${action}`;
+              const response = await fetch(url, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+              });
+              
+              const result = await response.json();
+              
+              if (response.ok) {
+                  crudResultElement.textContent = `Succes: Operația ${getRomanianLabels(tableName, action).actionLabel} pe ${getRomanianLabels(tableName, action).tableLabel} a fost executată. Răspuns de la server:\n${JSON.stringify(result, null, 2)}`;
+              } else {
+                  // Afișează detaliile erorii primite de la server
+                  const errorDetail = JSON.stringify(result, null, 2);
+                  crudResultElement.textContent = `Eroare la ${getRomanianLabels(tableName, action).actionLabel} pe ${getRomanianLabels(tableName, action).tableLabel} (HTTP ${response.status}):\n${errorDetail}`;
+              }
+              
+          } catch (error) {
+              crudResultElement.textContent = `Eroare de rețea sau server: ${error.message}`;
+              console.error(error);
+          }
+      }
+
+      function createForm(tableName, fields, actionType) {
+          const formId = `${tableName}-${actionType}-form`;
+          const labels = getRomanianLabels(tableName, actionType);
+          
+          let html = `
+              <div class="crud-form-section">
+                  <h4>${labels.actionLabel} ${labels.tableLabel}</h4>
+          `;
+          
+          // Adaugă avertisment pentru foreign key la Orders -> Add
+          if (tableName === 'orders' && actionType === 'add') {
+              html += `
+                  <div class="warning-note">
+                      <strong>Atenție:</strong> Pentru a adăuga o comandă, `+
+                      `câmpurile "USER ID" și "PRODUCTS" trebuie să conțină ID-uri valide `+
+                      `care există deja în tabelele `+
+                      `"Utilizatori" și "Produse" (Foreign Key Constraint).
+                  </div>
+              `;
+          }
+
+          html += `
+                  <form id="${formId}" onsubmit="handleCrudSubmit(event, '${tableName}', '${actionType}')">
+                      <div class="form-row"> 
+          `;
+          
+          if (actionType !== 'add') {
+              const idField = tableName === 'products' ? 'product_id' : tableName === 'orders' ? 'order_id' : 'user_id';
+              html += `
+                  <div class="form-group">
+                      <label for="${formId}-${idField}">${idField.replace(/_/g, ' ').toUpperCase()} (ID)</label>
+                      <input type="number" id="${formId}-${idField}" name="${idField}" required>
+                  </div>
+              `;
+          }
+          
+          if (actionType !== 'delete') {
+              fields.forEach(field => {
+                  // Filtrare câmpuri primare/chei la Add/Update
+                  if (field.name.endsWith('_id') && actionType === 'add' && field.name !== 'user_id') return; 
+                  if (field.name.includes('_id') && actionType === 'update') return; 
+                  if (field.name === 'order_id' || field.name === 'product_id') return; 
+
+                  let inputType = 'text';
+                  let placeholder = field.name.replace(/_/g, ' ');
+                  let requiredAttr = actionType === 'add' && !field.name.includes('_id') && field.name !== 'order_public_id' && field.name !== 'created_at' ? 'required' : '';
+                  
+                  if (field.type === 'INT' || field.type === 'DECIMAL') {
+                      inputType = 'number';
+                  } 
+                  
+                  if (field.name.includes('created_at')) {
+                      inputType = 'number';
+                      placeholder = 'Timp Unix (opțional)';
+                      requiredAttr = '';
+                  } else if (field.name === 'price') {
+                      placeholder += ' (ex: 9.99)';
+                  }
+                  
+                  if (tableName === 'orders' && field.name === 'products') {
+                      inputType = 'text'; 
+                      placeholder = 'ID-uri produse (ex: 1, 2, 3)'; 
+                      requiredAttr = actionType === 'add' ? 'required' : '';
+                  } else if (tableName === 'orders' && field.name === 'order_status') {
+                      placeholder = 'pending sau completed (implicit pending)';
+                      requiredAttr = '';
+                  }
+                  
+                  if (field.name === 'order_public_id') {
+                      placeholder = 'Lăsați gol pentru auto-generare (opțional)';
+                      requiredAttr = '';
+                  }
+
+
+                  html += `
+                      <div class="form-group">
+                          <label for="${formId}-${field.name}">${field.name.replace(/_/g, ' ').toUpperCase()}</label>
+                          <input type="${inputType}" id="${formId}-${field.name}" name="${field.name}" placeholder="${placeholder}" ${requiredAttr}>
+                      </div>
+                  `;
+              });
+          }
+          
+          html += `</div>`; 
+
+          let buttonClass = 'action-button';
+          if (actionType === 'delete') {
+              buttonClass += ' delete-button';
+          }
+          
+          // Butonul de submit în română
+          html += `
+                  <button type="submit" class="${buttonClass}">${labels.actionLabel} ${labels.tableLabel}</button>
+              </form>
+              </div>
+          `;
+          return html;
+      }
+      
+      function handleCrudSubmit(event, tableName, actionType) {
+          event.preventDefault();
+          const form = event.target;
+          const formData = new FormData(form);
+          const payload = {};
+          
+          for (const [key, value] of formData.entries()) {
+              const trimmedValue = value.trim();
+
+              // 1. Ignoră câmpurile goale/necompletate
+              if (trimmedValue === '') {
+                  continue;
+              }
+              
+              // 2. Gestionarea câmpului products (pentru Orders)
+              if (tableName === 'orders' && key === 'products') {
+                  
+                  let productIds;
+                  
+                  // Dacă arată ca un singur număr sau o listă separată prin virgulă (ex: "2" sau "1, 2, 3")
+                  if (!trimmedValue.startsWith('[') || !trimmedValue.endsWith(']')) {
+                      productIds = trimmedValue.split(',')
+                                                .map(s => s.trim())
+                                                .filter(s => s) // Elimină intrările goale
+                                                .map(Number)
+                                                .filter(n => !isNaN(n)); // Elimină non-numerice
+                      
+                      // API-ul așteaptă stringul JSON: "[1, 2, 3]"
+                      payload[key] = JSON.stringify(productIds); 
+                  } else {
+                      // Dacă userul a introdus deja un string JSON valid (ex: "[1, 2]")
+                      payload[key] = trimmedValue;
+                  }
+
+              // 3. Logica pentru numere (ID, Timestamp, Preț)
+              } else if (key.includes('id') || key.includes('created_at') || key === 'price') {
+                  const numberValue = parseFloat(trimmedValue);
+                  if (!isNaN(numberValue)) {
+                      payload[key] = numberValue;
+                  } else {
+                      // Dacă valoarea nu e un număr valid (de ex. e un string), o trimitem ca string.
+                      payload[key] = trimmedValue; 
+                  }
+              } else {
+                  // 4. Logica pentru restul câmpurilor (String-uri)
+                  payload[key] = trimmedValue;
+              }
+          }
+          
+          submitCrudOperation(actionType, tableName, payload);
+          
+          if (actionType === 'add') {
+              form.reset();
+          }
+      }
+
+      function showCrudTable(tableName) {
+          let fields = [];
+          crudFormsContainer.innerHTML = '';
+          crudResultElement.textContent = '';
+
+          switch(tableName) {
+              case 'users_login_info':
+                  fields = [
+                      // { name: 'user_id', type: 'INT' },
+                      { name: 'name', type: 'VARCHAR' },
+                      { name: 'created_at', type: 'INT' }
+                  ];
+                  break;
+              case 'products':
+                  fields = [
+                      { name: 'product_id', type: 'INT' },
+                      { name: 'name', type: 'VARCHAR' },
+                      { name: 'price', type: 'DECIMAL' }
+                  ];
+                  break;
+              case 'orders':
+                  fields = [
+                      { name: 'order_id', type: 'INT' },
+                      { name: 'order_public_id', type: 'VARCHAR' },
+                      { name: 'user_id', type: 'INT' },
+                      { name: 'products', type: 'TEXT' },
+                      { name: 'order_status', type: 'VARCHAR' },
+                      { name: 'created_at', type: 'INT' }
+                  ];
+                  break;
+              default:
+                  crudFormsContainer.innerHTML = `<p>Tabelă necunoscută: ${tableName}</p>`;
+                  return;
+          }
+          
+          crudFormsContainer.innerHTML += createForm(tableName, fields, 'add');
+          crudFormsContainer.innerHTML += createForm(tableName, fields, 'update');
+          crudFormsContainer.innerHTML += createForm(tableName, fields, 'delete');
+          
+          crudFormsContainer.innerHTML += `<p style="margin-top: 20px; font-size: 0.9em; color: #6c757d;">
+              * Notă: Aceste formulare simulează trimiterea datelor către endpoint-uri API de forma: 
+              <code>${API}${CRUD_API}/${tableName}/[add|update|delete]</code>. 
+              Verifică consola (F12) pentru detalii.
+              </p>`;
+      }
+      
+      document.addEventListener('DOMContentLoaded', () => {
+          document.getElementById('result').textContent = 'Apasă un buton pentru a vedea rezultatele.';
+          document.getElementById('tabGeneral').classList.add('active');
+          generalView.style.display = 'block';
+          crudView.style.display = 'none';
       });
     </script>
   </body>
