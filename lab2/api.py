@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pymysql
@@ -90,55 +90,166 @@ def register_user(req: RegisterRequest):
         "user_id": user_id,
     }
 
-@app.get("/admin/stats/order-status")
-def stats_order_status():
-    """Obiectiv 2: Statistica comenzi finalizate vs nefinalizate"""
+@app.get("/admin/stats/user-orders")
+def get_user_orders_by_name(
+    name: str, 
+    start: int = Query(..., description="Start Timestamp"), 
+    end: int = Query(..., description="End Timestamp")
+):
+    """Obiectiv 1: Comenzi utilizator după NUME și Interval de Timp"""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT order_status, COUNT(*) as count FROM orders GROUP BY order_status")
+    
+    # 1. Găsim ID-ul utilizatorului pe baza numelui
+    cursor.execute("SELECT user_id FROM users_login_info WHERE name = %s", (name,))
+    user = cursor.fetchone()
+    
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Utilizatorul nu a fost găsit.")
+    
+    user_id = user['user_id']
+
+    # 2. Luăm comenzile în intervalul de timp
+    cursor.execute("""
+        SELECT order_id, order_public_id, products, order_status, created_at 
+        FROM orders 
+        WHERE user_id = %s AND created_at >= %s AND created_at <= %s
+        ORDER BY created_at DESC
+    """, (user_id, start, end))
+    
+    orders = cursor.fetchall()
+    
+    # 3. Rezolvăm numele produselor
+    cursor.execute("SELECT product_id, name FROM products")
+    product_lookup = {row["product_id"]: row["name"] for row in cursor.fetchall()}
+    conn.close()
+
+    result = []
+    for r in orders:
+        try:
+            p_ids = json.loads(r["products"])
+            # Fallback dacă e int
+            if isinstance(p_ids, int): p_ids = [p_ids]
+            p_names = [product_lookup.get(pid, f"ID {pid}") for pid in p_ids]
+        except: 
+            p_names = ["Eroare date produse"]
+        
+        result.append({
+            "order_id": r["order_id"],
+            "products": ", ".join(p_names),
+            "status": r["order_status"],
+            "date": datetime.fromtimestamp(r["created_at"]).strftime("%Y-%m-%d %H:%M")
+        })
+
+    return {"user": name, "count": len(result), "orders": result}
+
+
+@app.get("/admin/stats/order-status")
+def stats_order_status(
+    start: int = Query(...), 
+    end: int = Query(...)
+):
+    """Obiectiv 2: Statistica Status Comenzi în interval"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT order_status, COUNT(*) as count 
+        FROM orders 
+        WHERE created_at >= %s AND created_at <= %s
+        GROUP BY order_status
+    """, (start, end))
     rows = cursor.fetchall()
     conn.close()
     
-    # Formatăm pentru frontend: {"completed": 10, "pending": 5}
-    stats = {row['order_status']: row['count'] for row in rows}
-    return stats
+    return {row['order_status']: row['count'] for row in rows}
 
-@app.get("/admin/stats/new-users-last-week")
-def stats_new_users():
-    """Obiectiv 4: Statistica utilizatori noi ultima saptamana"""
+
+@app.get("/admin/stats/daily-orders")
+def stats_daily_orders(
+    start: int = Query(...), 
+    end: int = Query(...)
+):
+    """Obiectiv 3: Comenzi zilnice în interval flexibil"""
     conn = get_db()
     cursor = conn.cursor()
-    one_week_ago = int(time.time()) - 7 * 86400
     
-    cursor.execute("SELECT created_at FROM users_login_info WHERE created_at >= %s", (one_week_ago,))
+    cursor.execute("""
+        SELECT created_at FROM orders 
+        WHERE created_at >= %s AND created_at <= %s
+    """, (start, end))
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Generăm dicționarul cu toate zilele din interval (pentru a avea 0 acolo unde nu sunt comenzi)
+    counts = {}
+    current_ts = start
+    while current_ts <= end:
+        day_str = datetime.fromtimestamp(current_ts).strftime("%Y-%m-%d")
+        counts[day_str] = 0
+        current_ts += 86400 # +1 zi în secunde
+
+    # Populăm cu datele reale
+    for row in rows:
+        day = datetime.fromtimestamp(row["created_at"]).strftime("%Y-%m-%d")
+        if day in counts:
+            counts[day] += 1
+        else:
+            # Caz limită (fus orar etc), adăugăm cheia
+            counts[day] = counts.get(day, 0) + 1
+
+    return {"dates": list(counts.keys()), "counts": list(counts.values())}
+
+
+@app.get("/admin/stats/new-users")
+def stats_new_users(
+    start: int = Query(...), 
+    end: int = Query(...)
+):
+    """Obiectiv 4: Utilizatori noi în interval"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT created_at FROM users_login_info 
+        WHERE created_at >= %s AND created_at <= %s
+    """, (start, end))
     rows = cursor.fetchall()
     conn.close()
 
     counts = {}
-    for i in range(7):
-        day = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
-        counts[day] = 0
+    current_ts = start
+    while current_ts <= end:
+        day_str = datetime.fromtimestamp(current_ts).strftime("%Y-%m-%d")
+        counts[day_str] = 0
+        current_ts += 86400
 
     for row in rows:
         day = datetime.fromtimestamp(row["created_at"]).strftime("%Y-%m-%d")
         if day in counts:
             counts[day] += 1
+        else:
+            counts[day] = counts.get(day, 0) + 1
 
-    dates = list(reversed(list(counts.keys())))
-    values = list(reversed(list(counts.values())))
-    return {"dates": dates, "counts": values}
+    return {"dates": list(counts.keys()), "counts": list(counts.values())}
+
 
 @app.get("/admin/stats/products-popularity")
-def stats_products():
-    """Obiectiv 5: Statistica comenzi pe tipul de produse"""
+def stats_products(
+    start: int = Query(...), 
+    end: int = Query(...)
+):
+    """Obiectiv 5: Produse populare în interval"""
     conn = get_db()
     cursor = conn.cursor()
     
-    # 1. Luăm toate comenzile
-    cursor.execute("SELECT products FROM orders")
+    # Selectăm doar comenzile din interval
+    cursor.execute("""
+        SELECT products FROM orders 
+        WHERE created_at >= %s AND created_at <= %s
+    """, (start, end))
     orders = cursor.fetchall()
     
-    # 2. Luăm numele produselor pentru mapare
     cursor.execute("SELECT product_id, name FROM products")
     products_db = cursor.fetchall()
     product_map = {p['product_id']: p['name'] for p in products_db}
@@ -148,15 +259,12 @@ def stats_products():
 
     for order in orders:
         try:
-            # products este stocat ca string JSON "[1, 2]"
             prod_ids = json.loads(order['products'])
-            if isinstance(prod_ids, list):
-                for pid in prod_ids:
-                    p_name = product_map.get(pid, f"ID {pid}")
-                    product_counts[p_name] = product_counts.get(p_name, 0) + 1
-            elif isinstance(prod_ids, int): # Fallback pentru legacy data
-                 p_name = product_map.get(prod_ids, f"ID {prod_ids}")
-                 product_counts[p_name] = product_counts.get(p_name, 0) + 1
+            if isinstance(prod_ids, int): prod_ids = [prod_ids]
+            
+            for pid in prod_ids:
+                p_name = product_map.get(pid, f"ID {pid}")
+                product_counts[p_name] = product_counts.get(p_name, 0) + 1
         except:
             continue
 

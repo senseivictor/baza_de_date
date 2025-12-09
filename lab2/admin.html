@@ -2,12 +2,12 @@
 <html lang="ro">
   <head>
     <meta charset="UTF-8" />
-    <title>Panou Admin</title>
+    <title>Panou Admin Complet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
       body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         padding: 20px;
         background-color: #f4f7f9;
         color: #333;
@@ -22,39 +22,47 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       }
 
-      h2 {
+      h2,
+      h3 {
         color: #007bff;
+      }
+      h2 {
         border-bottom: 2px solid #007bff;
         padding-bottom: 10px;
         margin-bottom: 20px;
       }
+      h3 {
+        margin-top: 30px;
+        color: #495057;
+        font-size: 1.3em;
+      }
 
-      /* Navigatie Tab-uri */
+      /* --- NAVIGARE TAB-URI --- */
       .nav-tabs {
-        margin-bottom: 20px;
         display: flex;
         border-bottom: 2px solid #ced4da;
+        margin-bottom: 20px;
         flex-wrap: wrap;
       }
 
-      .nav-tabs button {
+      .tab-button {
         padding: 12px 20px;
         background: none;
-        color: #495057;
         border: none;
-        border-radius: 8px 8px 0 0;
         cursor: pointer;
         font-weight: 600;
-        transition: all 0.3s;
-        margin-right: 5px;
+        color: #495057;
         font-size: 16px;
+        border-radius: 8px 8px 0 0;
+        margin-right: 5px;
+        transition: all 0.2s;
       }
 
-      .nav-tabs button:hover {
+      .tab-button:hover {
         background-color: #e9ecef;
       }
 
-      .nav-tabs button.active {
+      .tab-button.active {
         background-color: #fff;
         color: #007bff;
         border: 1px solid #ced4da;
@@ -62,40 +70,54 @@
         margin-bottom: -2px;
       }
 
-      /* Stiluri Butoane */
-      .action-button, .objective-button {
+      /* --- BUTOANE GENERALE --- */
+      .action-button,
+      .objective-button {
         padding: 10px 20px;
-        margin: 10px 5px 10px 0;
         cursor: pointer;
         background: #007bff;
         color: white;
         border: none;
         border-radius: 6px;
         font-weight: bold;
+        margin: 5px 5px 5px 0;
         transition: transform 0.2s, background-color 0.2s;
       }
 
-      .action-button:hover, .objective-button:hover {
+      .action-button:hover,
+      .objective-button:hover {
         background-color: #0056b3;
         transform: translateY(-2px);
+      }
+
+      .delete-button {
+        background-color: #dc3545;
+      }
+      .delete-button:hover {
+        background-color: #c82333;
       }
 
       .objective-button {
         width: 100%;
         text-align: left;
         background-color: #6c757d;
-        margin-bottom: 5px;
-      }
-      
-      .objective-button:hover {
-        background-color: #5a6268;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
-      .delete-button { background-color: #dc3545; }
-      .delete-button:hover { background-color: #c82333; }
+      .objective-button:after {
+        content: "▼";
+        font-size: 0.8em;
+      }
+      .objective-button.open:after {
+        content: "▲";
+      }
 
-      /* Formulare & Inputs */
-      .crud-form-section, .objective-content {
+      /* --- CONTAINERE SI FORMULARE --- */
+      .crud-form-section,
+      .objective-content {
         border: 1px solid #ced4da;
         padding: 20px;
         border-radius: 8px;
@@ -103,25 +125,72 @@
         background: #f8f9fa;
       }
 
+      .crud-form-section h4 {
+        margin-top: 0;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #ced4da;
+        color: #212529;
+      }
+
       .objective-content {
-        display: none; /* Ascuns implicit */
+        display: none;
         background: #fff;
         border-left: 5px solid #007bff;
       }
 
+      /* Layout Orizontal pentru Formulare (Flexbox) */
       .form-row {
         display: flex;
-        flex-wrap: wrap; 
-        gap: 20px; 
+        flex-wrap: wrap;
+        gap: 20px;
         margin-bottom: 15px;
+        align-items: flex-end;
       }
 
-      .form-group { flex: 1; min-width: 200px; margin-bottom: 10px; }
-      .form-group label { display: block; font-weight: 600; margin-bottom: 5px; }
-      input[type="text"], input[type="number"] {
-          width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box;
+      .form-group {
+        flex: 1;
+        min-width: 200px;
+        margin-bottom: 10px;
       }
 
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.9em;
+        margin-bottom: 5px;
+        color: #495057;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="date"] {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+
+      /* Selector Data */
+      .date-range-selector {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: #e9ecef;
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        border: 1px solid #dee2e6;
+      }
+
+      .date-range-selector label {
+        font-weight: bold;
+        margin-right: 5px;
+      }
+
+      /* --- UTILITARE --- */
       pre {
         background: #2d2d2d;
         color: #f8f8f2;
@@ -131,7 +200,8 @@
         word-break: break-all;
         min-height: 50px;
         margin-top: 15px;
-        font-family: monospace;
+        font-family: "Consolas", "Monaco", monospace;
+        font-size: 13px;
       }
 
       canvas {
@@ -139,6 +209,23 @@
         height: auto;
         margin-top: 20px;
         border: 1px solid #eee;
+        background: #fff;
+      }
+
+      .warning-note {
+        padding: 10px;
+        margin-bottom: 15px;
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+
+      .loading {
+        text-align: center;
+        color: #6c757d;
+        padding: 20px;
       }
     </style>
   </head>
@@ -147,336 +234,745 @@
     <div class="container">
       <h2>Panou de Administrare</h2>
 
+      <!-- Navigare -->
       <div class="nav-tabs">
-        <button class="tab-button active" onclick="switchView('general', this)">Analiză Generală</button>
-        <button class="tab-button" onclick="switchView('crud', this)">Administrare Date (CRUD)</button>
-        <button class="tab-button" onclick="switchView('objectives', this)">Obiective</button>
+        <button class="tab-button active" onclick="switchView('crud', this)">
+          Administrare Date (CRUD)
+        </button>
+        <button class="tab-button" onclick="switchView('objectives', this)">
+          Obiective & Statistici
+        </button>
       </div>
 
-      <!-- VIZUALIZARE 1: ANALIZĂ GENERALĂ -->
-      <div id="generalView">
-        <p>Vizualizare date agregate și statistici despre comenzi.</p>
-        <button class="action-button" onclick="getLatestOrder()">Ultima comandă</button>
-        <button class="action-button" onclick="getCompleted()">Comenzi finalizate</button>
-        <button class="action-button" onclick="getPending()">Comenzi în așteptare</button>
-        <button class="action-button" onclick="getWeeklyGraph()">Grafic ultimele 7 zile</button>
-        
-        <h3>Rezultat:</h3>
-        <pre id="result">Apasă un buton pentru a vedea rezultatele.</pre>
-        <div id="chartContainer" style="display: none; text-align:center;">
-          <canvas id="ordersChart" width="800" height="400"></canvas>
+      <!-- ========================================== -->
+      <!-- TAB 1: CRUD (Create, Read, Update, Delete) -->
+      <!-- ========================================== -->
+      <div id="crudView">
+        <h3>Selectează Tabela:</h3>
+        <div style="margin-bottom: 20px">
+          <button
+            class="action-button"
+            onclick="showCrudTable('users_login_info')"
+          >
+            Utilizatori
+          </button>
+          <button class="action-button" onclick="showCrudTable('products')">
+            Produse
+          </button>
+          <button class="action-button" onclick="showCrudTable('orders')">
+            Comenzi
+          </button>
         </div>
-      </div>
-      
-      <!-- VIZUALIZARE 2: CRUD OPERAȚII -->
-      <div id="crudView" style="display: none;">
-        <h3>Administrare Tabele</h3>
-        <div style="margin-bottom: 20px;">
-            <button class="action-button" onclick="showCrudTable('users_login_info')">Utilizatori</button>
-            <button class="action-button" onclick="showCrudTable('products')">Produse</button>
-            <button class="action-button" onclick="showCrudTable('orders')">Comenzi</button>
+
+        <div id="crudFormsContainer">
+          <p style="color: #6c757d">
+            Selectează o tabelă de mai sus pentru a afișa formularele de
+            administrare.
+          </p>
         </div>
-        <div id="crudFormsContainer"></div>
-        <h3>Log Operații:</h3>
-        <pre id="crudResult"></pre>
+
+        <h3>Jurnal Operații:</h3>
+        <pre id="crudResult">Așteptare acțiuni...</pre>
       </div>
 
-      <!-- VIZUALIZARE 3: OBIECTIVE -->
-      <div id="objectivesView" style="display: none;">
-        <h3>Obiective Specifice</h3>
+      <!-- ========================================== -->
+      <!-- TAB 2: OBIECTIVE SI STATISTICI AVANSATE -->
+      <!-- ========================================== -->
+      <div id="objectivesView" style="display: none">
+        <h3>Rapoarte Detaliate</h3>
 
         <!-- Obiectiv 1 -->
-        <button class="objective-button" onclick="toggleObjective('obj1')">Obiectiv 1: Vizualizarea comenzilor unui utilizator specific</button>
+        <button
+          class="objective-button"
+          onclick="toggleObjective('obj1', this)"
+        >
+          1. Istoric Comenzi Utilizator (Căutare după Nume)
+        </button>
         <div id="obj1" class="objective-content">
-            <p>Introduceți ID-ul utilizatorului pentru a vedea istoricul comenzilor.</p>
-            <div class="form-row">
-                <input type="number" id="obj1-userId" placeholder="ID Utilizator (ex: 1)">
-                <button class="action-button" onclick="runObjective1()">Caută Comenzi</button>
+          <div class="date-range-selector">
+            <label>Perioada:</label>
+            <input type="date" id="start-obj1" />
+            <span>până la</span>
+            <input type="date" id="end-obj1" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nume Utilizator</label>
+              <input type="text" id="obj1-name" placeholder="ex: Ion Popescu" />
             </div>
-            <pre id="obj1-result"></pre>
+            <div class="form-group" style="flex: 0">
+              <button
+                class="action-button"
+                style="margin: 0"
+                onclick="runObjective1()"
+              >
+                Caută
+              </button>
+            </div>
+          </div>
+          <pre id="obj1-result"></pre>
         </div>
 
         <!-- Obiectiv 2 -->
-        <button class="objective-button" onclick="toggleObjective('obj2')">Obiectiv 2: Statistica comenzilor finalizate vs nefinisate</button>
+        <button
+          class="objective-button"
+          onclick="toggleObjective('obj2', this)"
+        >
+          2. Raport Status Comenzi (Finalizate vs Nefinisate)
+        </button>
         <div id="obj2" class="objective-content">
-            <p>Afișează raportul între comenzile 'completed' și cele 'pending'.</p>
-            <button class="action-button" onclick="runObjective2()">Generează Raport</button>
-            <div style="text-align: center;">
-                <canvas id="obj2-chart" width="400" height="400" style="display:none; margin: 0 auto;"></canvas>
-            </div>
-            <pre id="obj2-result"></pre>
+          <div class="date-range-selector">
+            <label>Perioada:</label>
+            <input type="date" id="start-obj2" />
+            <span>până la</span>
+            <input type="date" id="end-obj2" />
+            <button class="action-button" onclick="runObjective2()">
+              Generează Raport
+            </button>
+          </div>
+          <div style="text-align: center">
+            <canvas
+              id="obj2-chart"
+              width="400"
+              height="400"
+              style="display: none; margin: 0 auto"
+            ></canvas>
+          </div>
+          <pre id="obj2-result"></pre>
         </div>
 
         <!-- Obiectiv 3 -->
-        <button class="objective-button" onclick="toggleObjective('obj3')">Obiectiv 3: Statistica numărului zilnic de comenzi (Ultima săptămână)</button>
+        <button
+          class="objective-button"
+          onclick="toggleObjective('obj3', this)"
+        >
+          3. Evoluția Zilnică a Comenzilor
+        </button>
         <div id="obj3" class="objective-content">
-            <p>Vizualizare grafică a volumului de comenzi pe zile.</p>
-            <button class="action-button" onclick="runObjective3()">Afisează Grafic</button>
-            <canvas id="obj3-chart" width="800" height="400" style="display:none;"></canvas>
+          <div class="date-range-selector">
+            <label>Perioada:</label>
+            <input type="date" id="start-obj3" />
+            <span>până la</span>
+            <input type="date" id="end-obj3" />
+            <button class="action-button" onclick="runObjective3()">
+              Afisează Grafic
+            </button>
+          </div>
+          <canvas
+            id="obj3-chart"
+            width="800"
+            height="500"
+            style="display: none"
+          ></canvas>
         </div>
 
         <!-- Obiectiv 4 -->
-        <button class="objective-button" onclick="toggleObjective('obj4')">Obiectiv 4: Statistica numărului nou de utilizatori (Ultima săptămână)</button>
+        <button
+          class="objective-button"
+          onclick="toggleObjective('obj4', this)"
+        >
+          4. Utilizatori Noi Înregistrați
+        </button>
         <div id="obj4" class="objective-content">
-            <p>Câți utilizatori noi s-au înregistrat în ultimele 7 zile?</p>
-            <button class="action-button" onclick="runObjective4()">Afisează Statistică</button>
-            <canvas id="obj4-chart" width="800" height="400" style="display:none;"></canvas>
+          <div class="date-range-selector">
+            <label>Perioada:</label>
+            <input type="date" id="start-obj4" />
+            <span>până la</span>
+            <input type="date" id="end-obj4" />
+            <button class="action-button" onclick="runObjective4()">
+              Afisează Statistică
+            </button>
+          </div>
+          <canvas
+            id="obj4-chart"
+            width="800"
+            height="500"
+            style="display: none"
+          ></canvas>
         </div>
 
         <!-- Obiectiv 5 -->
-        <button class="objective-button" onclick="toggleObjective('obj5')">Obiectiv 5: Statistica comenzilor pe tipul de produse</button>
+        <button
+          class="objective-button"
+          onclick="toggleObjective('obj5', this)"
+        >
+          5. Popularitate Produse
+        </button>
         <div id="obj5" class="objective-content">
-            <p>Care sunt cele mai vândute produse?</p>
-            <button class="action-button" onclick="runObjective5()">Analizează Produse</button>
-            <div style="text-align: center;">
-                <canvas id="obj5-chart" width="600" height="400" style="display:none; margin: 0 auto;"></canvas>
-            </div>
-            <pre id="obj5-result"></pre>
+          <div class="date-range-selector">
+            <label>Perioada:</label>
+            <input type="date" id="start-obj5" />
+            <span>până la</span>
+            <input type="date" id="end-obj5" />
+            <button class="action-button" onclick="runObjective5()">
+              Analizează Vânzări
+            </button>
+          </div>
+          <div style="text-align: center">
+            <canvas
+              id="obj5-chart"
+              width="600"
+              height="400"
+              style="display: none; margin: 0 auto"
+            ></canvas>
+          </div>
+          <pre id="obj5-result"></pre>
         </div>
       </div>
     </div>
 
     <script>
       const API = "http://localhost:8000";
-      
-      // --- NAVIGARE ---
-      function switchView(viewName, btn) {
-        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        ['generalView', 'crudView', 'objectivesView'].forEach(id => document.getElementById(id).style.display = 'none');
-        document.getElementById(viewName + 'View').style.display = 'block';
-      }
 
-      function toggleObjective(id) {
-          const content = document.getElementById(id);
-          content.style.display = content.style.display === 'block' ? 'none' : 'block';
-      }
+      // ==========================================
+      // UTILITARE GLOBALE
+      // ==========================================
 
-      // --- FETCH HELPER ---
-      async function fetchData(endpoint) {
-          try {
-              const res = await fetch(`${API}${endpoint}`);
-              if (!res.ok) throw new Error(res.statusText);
-              return await res.json();
-          } catch (e) {
-              alert("Eroare API: " + e.message);
-              return null;
+      // Setează datele implicite (Ultima săptămână)
+      function setDefaultDates() {
+        const today = new Date();
+        const lastWeek = new Date();
+        lastWeek.setDate(today.getDate() - 7);
+
+        const fmt = (d) => d.toISOString().split("T")[0];
+
+        for (let i = 1; i <= 5; i++) {
+          const startEl = document.getElementById(`start-obj${i}`);
+          const endEl = document.getElementById(`end-obj${i}`);
+          if (startEl && endEl) {
+            startEl.value = fmt(lastWeek);
+            endEl.value = fmt(today);
           }
-      }
-
-      // --- LOGICA OBIECTIVE ---
-
-      // Obiectiv 1: User Orders
-      async function runObjective1() {
-          const userId = document.getElementById('obj1-userId').value;
-          if(!userId) return alert("Introduceți ID utilizator");
-          
-          const data = await fetchData(`/get-orders?userId=${userId}`);
-          document.getElementById('obj1-result').textContent = JSON.stringify(data, null, 2);
-      }
-
-      // Obiectiv 2: Status (Pie Chart)
-      async function runObjective2() {
-          const data = await fetchData(`/admin/stats/order-status`);
-          if(data) {
-              document.getElementById('obj2-result').textContent = JSON.stringify(data, null, 2);
-              drawPieChart('obj2-chart', data);
-          }
-      }
-
-      // Obiectiv 3: Comenzi Zilnice (Bar Chart)
-      async function runObjective3() {
-          const data = await fetchData(`/admin/orders-last-week`);
-          if(data) {
-              drawBarChart('obj3-chart', data.dates, data.counts, 'Comenzi');
-          }
-      }
-
-      // Obiectiv 4: Utilizatori Noi (Bar Chart)
-      async function runObjective4() {
-          const data = await fetchData(`/admin/stats/new-users-last-week`);
-          if(data) {
-              drawBarChart('obj4-chart', data.dates, data.counts, 'Utilizatori Noi');
-          }
-      }
-
-      // Obiectiv 5: Produse (Bar/Pie Chart)
-      async function runObjective5() {
-          const data = await fetchData(`/admin/stats/products-popularity`);
-          if(data) {
-              document.getElementById('obj5-result').textContent = JSON.stringify(data, null, 2);
-              // Convertim obiectul in array-uri pentru bar chart
-              const labels = Object.keys(data);
-              const values = Object.values(data);
-              drawBarChart('obj5-chart', labels, values, 'Vânzări', '#28a745');
-          }
-      }
-
-      // --- FUNCTII GRAFICE (CANVAS) ---
-
-      function drawBarChart(canvasId, labels, data, title, color = '#007bff') {
-        const canvas = document.getElementById(canvasId);
-        canvas.style.display = 'block';
-        const ctx = canvas.getContext("2d");
-        const W = canvas.width, H = canvas.height;
-        const padding = 50;
-        
-        ctx.clearRect(0, 0, W, H);
-        
-        const maxVal = Math.max(...data, 1);
-        const barWidth = (W - 2 * padding) / data.length * 0.6;
-        const stepX = (W - 2 * padding) / data.length;
-
-        // Axe
-        ctx.beginPath();
-        ctx.moveTo(padding, padding);
-        ctx.lineTo(padding, H - padding);
-        ctx.lineTo(W - padding, H - padding);
-        ctx.stroke();
-
-        ctx.fillStyle = color;
-        ctx.textAlign = "center";
-        
-        data.forEach((val, i) => {
-            const h = (val / maxVal) * (H - 2 * padding);
-            const x = padding + i * stepX + stepX/2 - barWidth/2;
-            const y = H - padding - h;
-            
-            ctx.fillRect(x, y, barWidth, h);
-            ctx.fillStyle = "#000";
-            ctx.fillText(val, x + barWidth/2, y - 5);
-            ctx.fillText(labels[i], x + barWidth/2, H - padding + 15);
-            ctx.fillStyle = color;
-        });
-        
-        ctx.font = "16px Arial";
-        ctx.fillText(title, W/2, 20);
-      }
-
-      function drawPieChart(canvasId, dataObject) {
-          const canvas = document.getElementById(canvasId);
-          canvas.style.display = 'block';
-          const ctx = canvas.getContext("2d");
-          const W = canvas.width, H = canvas.height;
-          const total = Object.values(dataObject).reduce((a, b) => a + b, 0);
-          let startAngle = 0;
-          const colors = ['#007bff', '#dc3545', '#ffc107', '#28a745', '#17a2b8'];
-          
-          ctx.clearRect(0, 0, W, H);
-          const centerX = W / 2, centerY = H / 2, radius = 100;
-
-          let i = 0;
-          for (const [label, value] of Object.entries(dataObject)) {
-              if (value === 0) continue;
-              const sliceAngle = (value / total) * 2 * Math.PI;
-              
-              ctx.beginPath();
-              ctx.moveTo(centerX, centerY);
-              ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
-              ctx.closePath();
-              ctx.fillStyle = colors[i % colors.length];
-              ctx.fill();
-              
-              // Legenda
-              ctx.fillRect(W - 100, 50 + i * 20, 15, 15);
-              ctx.fillStyle = "#000";
-              ctx.fillText(`${label} (${value})`, W - 80, 62 + i * 20);
-
-              startAngle += sliceAngle;
-              i++;
-          }
-          
-          if(total === 0) {
-              ctx.fillText("Nu există date", centerX, centerY);
-          }
-      }
-
-      // --- LOGICA GENERALA & CRUD (Existenta) ---
-      // (Păstrată pentru funcționarea tab-urilor vechi)
-      
-      async function getLatestOrder() {
-        const d = await fetchData("/admin/latest-order");
-        document.getElementById("result").textContent = JSON.stringify(d, null, 2);
-      }
-      async function getCompleted() {
-        const d = await fetchData("/admin/completed-orders");
-        document.getElementById("result").textContent = JSON.stringify(d, null, 2);
-      }
-      async function getPending() {
-        const d = await fetchData("/admin/pending-orders");
-        document.getElementById("result").textContent = JSON.stringify(d, null, 2);
-      }
-      async function getWeeklyGraph() {
-        const d = await fetchData("/admin/orders-last-week");
-        document.getElementById("chartContainer").style.display = 'block';
-        drawBarChart('ordersChart', d.dates, d.counts, 'Comenzi Saptamana');
-      }
-
-      function showCrudTable(table) {
-          const container = document.getElementById('crudFormsContainer');
-          container.innerHTML = '';
-          const fields = getFields(table);
-          
-          ['add', 'update', 'delete'].forEach(action => {
-              const html = createForm(table, fields, action);
-              container.innerHTML += html;
-          });
-      }
-
-      function getFields(table) {
-          if(table === 'users_login_info') return ['user_id', 'name', 'created_at'];
-          if(table === 'products') return ['product_id', 'name', 'price'];
-          return ['order_id', 'order_public_id', 'user_id', 'products', 'order_status', 'created_at'];
-      }
-
-      function createForm(table, fields, action) {
-        let html = `<div class="crud-form-section"><h4>${action.toUpperCase()} ${table}</h4>
-        <form onsubmit="handleCrud(event, '${table}', '${action}')"><div class="form-row">`;
-        
-        if(action !== 'add') html += makeInput(fields[0], true); // PK
-        
-        if(action !== 'delete') {
-            fields.forEach(f => {
-                if((action === 'add' && f === fields[0]) || f === 'order_public_id' || f === 'created_at') return;
-                html += makeInput(f, action === 'add');
-            });
         }
-        
-        html += `</div><button class="action-button ${action === 'delete' ? 'delete-button' : ''}">${action}</button></form></div>`;
+      }
+
+      // Validare și conversie date în Timestamp UNIX
+      function getTimestamps(objId) {
+        const sVal = document.getElementById(`start-${objId}`).value;
+        const eVal = document.getElementById(`end-${objId}`).value;
+
+        if (!sVal || !eVal) {
+          alert("Vă rugăm selectați ambele date (Început și Sfârșit)!");
+          return null;
+        }
+
+        // Start: Ora 00:00:00
+        const startTs = Math.floor(new Date(sVal).getTime() / 1000);
+        // End: Ora 23:59:59 (+86399 secunde)
+        const endTs = Math.floor(new Date(eVal).getTime() / 1000) + 86399;
+
+        if (startTs > endTs) {
+          alert("Data de început trebuie să fie anterioară datei de sfârșit.");
+          return null;
+        }
+        return { start: startTs, end: endTs };
+      }
+
+      // Fetch Wrapper cu Error Handling
+      async function fetchData(endpoint) {
+        try {
+          const url = endpoint.startsWith("http")
+            ? endpoint
+            : `${API}${endpoint}`;
+          const res = await fetch(url);
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(
+              errData.detail || `HTTP ${res.status}: ${res.statusText}`
+            );
+          }
+          return await res.json();
+        } catch (e) {
+          alert("Eroare API: " + e.message);
+          console.error(e);
+          return null;
+        }
+      }
+
+      // Navigare Tab-uri
+      function switchView(viewName, btn) {
+        document
+          .querySelectorAll(".tab-button")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        ["crudView", "objectivesView"].forEach((id) => {
+          document.getElementById(id).style.display = "none";
+        });
+        document.getElementById(viewName + "View").style.display = "block";
+      }
+
+      // Acordion Obiective
+      function toggleObjective(id, btn) {
+        const el = document.getElementById(id);
+        const isOpen = el.style.display === "block";
+
+        // Închide toate
+        document
+          .querySelectorAll(".objective-content")
+          .forEach((d) => (d.style.display = "none"));
+        document
+          .querySelectorAll(".objective-button")
+          .forEach((b) => b.classList.remove("open"));
+
+        if (!isOpen) {
+          el.style.display = "block";
+          btn.classList.add("open");
+        }
+      }
+
+      // ==========================================
+      // LOGICA TAB 1: CRUD
+      // ==========================================
+
+      const CRUD_API = "/admin/crud";
+
+      function getRomanianLabels(tableName, actionType) {
+        const actions = {
+          add: "Adaugă",
+          update: "Actualizează",
+          delete: "Șterge",
+        };
+        const tables = {
+          users_login_info: "Utilizator",
+          products: "Produs",
+          orders: "Comandă",
+        };
+        return {
+          actionLabel: actions[actionType] || actionType,
+          tableLabel: tables[tableName] || tableName,
+        };
+      }
+
+      function showCrudTable(tableName) {
+        const container = document.getElementById("crudFormsContainer");
+        container.innerHTML = "";
+        document.getElementById(
+          "crudResult"
+        ).textContent = `Se lucrează pe tabela: ${tableName.toUpperCase()}`;
+
+        // Definire câmpuri
+        let fields = [];
+        if (tableName === "users_login_info")
+          fields = [
+            { name: "user_id", type: "INT" },
+            { name: "name", type: "VARCHAR" },
+            { name: "created_at", type: "INT" },
+          ];
+        else if (tableName === "products")
+          fields = [
+            { name: "product_id", type: "INT" },
+            { name: "name", type: "VARCHAR" },
+            { name: "price", type: "DECIMAL" },
+          ];
+        else if (tableName === "orders")
+          fields = [
+            { name: "order_id", type: "INT" },
+            { name: "order_public_id", type: "VARCHAR" },
+            { name: "user_id", type: "INT" },
+            { name: "products", type: "TEXT" },
+            { name: "order_status", type: "VARCHAR" },
+            { name: "created_at", type: "INT" },
+          ];
+
+        // Generare 3 formulare: Add, Update, Delete
+        container.innerHTML += createForm(tableName, fields, "add");
+        container.innerHTML += createForm(tableName, fields, "update");
+        container.innerHTML += createForm(tableName, fields, "delete");
+      }
+
+      function createForm(tableName, fields, actionType) {
+        const formId = `${tableName}-${actionType}-form`;
+        const labels = getRomanianLabels(tableName, actionType);
+
+        let html = `<div class="crud-form-section"><h4>${labels.actionLabel} ${labels.tableLabel}</h4>`;
+
+        // Avertisment specific pentru Foreign Key
+        if (tableName === "orders" && actionType === "add") {
+          html += `<div class="warning-note"><strong>Notă:</strong> User ID și ID-urile produselor trebuie să existe deja în bază.</div>`;
+        }
+
+        html += `<form id="${formId}" onsubmit="handleCrudSubmit(event, '${tableName}', '${actionType}')"><div class="form-row">`;
+
+        // ID Input (except Add)
+        if (actionType !== "add") {
+          const idField = fields[0].name; // Primul câmp e mereu PK
+          html += `<div class="form-group"><label>${idField.toUpperCase()} (ID)</label><input type="number" name="${idField}" required></div>`;
+        }
+
+        // Restul câmpurilor (except Delete)
+        if (actionType !== "delete") {
+          fields.forEach((field) => {
+            // Filtrare logică
+            if (
+              field.name.endsWith("_id") &&
+              actionType === "add" &&
+              field.name !== "user_id"
+            )
+              return;
+            if (field.name.includes("_id") && actionType === "update") return;
+            if (field.name === fields[0].name) return; // Skip PK
+
+            let type =
+              field.type === "INT" || field.type === "DECIMAL"
+                ? "number"
+                : "text";
+            let placeholder = field.name;
+            let required =
+              actionType === "add" &&
+              !field.name.includes("_id") &&
+              !field.name.includes("created_at")
+                ? "required"
+                : "";
+
+            // Personalizări specifice
+            if (field.name.includes("created_at")) {
+              type = "number";
+              placeholder = "Unix Timestamp (Opțional)";
+              required = "";
+            }
+            if (tableName === "orders" && field.name === "products") {
+              type = "text";
+              placeholder = "ID-uri ex: 1, 2, 3";
+              required = actionType === "add" ? "required" : "";
+            }
+            if (field.name === "order_public_id") {
+              placeholder = "Auto-generat (Opțional)";
+              required = "";
+            }
+
+            html += `<div class="form-group"><label>${field.name}</label>
+                           <input type="${type}" name="${field.name}" placeholder="${placeholder}" ${required}></div>`;
+          });
+        }
+
+        const btnClass = actionType === "delete" ? "delete-button" : "";
+        html += `</div><button type="submit" class="action-button ${btnClass}">${labels.actionLabel}</button></form></div>`;
         return html;
       }
 
-      function makeInput(name, required) {
-          let ph = name;
-          if(name === 'products') ph = 'JSON ex: [1, 2]';
-          return `<div class="form-group"><label>${name}</label><input type="${name.includes('id') || name === 'price' ? 'number' : 'text'}" name="${name}" placeholder="${ph}" ${required ? 'required' : ''}></div>`;
+      async function handleCrudSubmit(e, tableName, actionType) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const payload = {};
+
+        for (const [key, value] of formData.entries()) {
+          const val = value.trim();
+          if (val === "") continue;
+
+          // Procesare specială pentru 'products' în 'orders'
+          if (tableName === "orders" && key === "products") {
+            if (!val.startsWith("[")) {
+              // Converteste "1, 2" -> "[1, 2]"
+              const arr = val
+                .split(",")
+                .map((s) => Number(s.trim()))
+                .filter((n) => !isNaN(n));
+              payload[key] = JSON.stringify(arr);
+            } else {
+              payload[key] = val;
+            }
+          }
+          // Conversie numerică
+          else if (
+            key.includes("id") ||
+            key.includes("created_at") ||
+            key === "price"
+          ) {
+            const num = parseFloat(val);
+            payload[key] = isNaN(num) ? val : num;
+          } else {
+            payload[key] = val;
+          }
+        }
+
+        document.getElementById(
+          "crudResult"
+        ).textContent = `Se trimite cererea ${actionType.toUpperCase()}...`;
+
+        try {
+          const res = await fetch(
+            `${API}${CRUD_API}/${tableName}/${actionType}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            }
+          );
+          const json = await res.json();
+
+          if (res.ok) {
+            document.getElementById(
+              "crudResult"
+            ).textContent = `Succes:\n${JSON.stringify(json, null, 2)}`;
+            if (actionType === "add") e.target.reset();
+          } else {
+            document.getElementById(
+              "crudResult"
+            ).textContent = `Eroare:\n${JSON.stringify(json, null, 2)}`;
+          }
+        } catch (err) {
+          document.getElementById("crudResult").textContent =
+            "Eroare rețea: " + err.message;
+        }
       }
 
-      async function handleCrud(e, table, action) {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          const payload = {};
-          formData.forEach((v, k) => {
-              if(v) payload[k] = (k.includes('id') || k === 'price') ? parseFloat(v) : v;
-          });
-          
-          // Fix products for orders
-          if(table === 'orders' && payload['products'] && typeof payload['products'] === 'string') {
-               if(!payload['products'].startsWith('[')) {
-                   payload['products'] = JSON.stringify(payload['products'].split(',').map(Number));
-               }
+      // ==========================================
+      // LOGICA TAB 2: OBIECTIVE (STATISTICI)
+      // ==========================================
+
+      // 1. Caută User
+      async function runObjective1() {
+        const name = document.getElementById("obj1-name").value;
+        const ts = getTimestamps("obj1");
+        if (!name || !ts) return;
+
+        document.getElementById("obj1-result").textContent = "Se caută...";
+        const data = await fetchData(
+          `${API}/admin/stats/user-orders?name=${encodeURIComponent(
+            name
+          )}&start=${ts.start}&end=${ts.end}`
+        );
+        if (data)
+          document.getElementById("obj1-result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+      }
+
+      // 2. Status Pie Chart
+      async function runObjective2() {
+        const ts = getTimestamps("obj2");
+        if (!ts) return;
+
+        const data = await fetchData(
+          `${API}/admin/stats/order-status?start=${ts.start}&end=${ts.end}`
+        );
+        if (data) {
+          document.getElementById("obj2-result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+          drawPieChart("obj2-chart", data);
+        }
+      }
+
+      // 3. Comenzi Zilnice
+      async function runObjective3() {
+        const ts = getTimestamps("obj3");
+        if (!ts) return;
+        const data = await fetchData(
+          `${API}/admin/stats/daily-orders?start=${ts.start}&end=${ts.end}`
+        );
+        if (data)
+          drawBarChart(
+            "obj3-chart",
+            data.dates,
+            data.counts,
+            "Comenzi Zilnice"
+          );
+      }
+
+      // 4. Useri Noi
+      async function runObjective4() {
+        const ts = getTimestamps("obj4");
+        if (!ts) return;
+        const data = await fetchData(
+          `${API}/admin/stats/new-users?start=${ts.start}&end=${ts.end}`
+        );
+        if (data)
+          drawBarChart(
+            "obj4-chart",
+            data.dates,
+            data.counts,
+            "Utilizatori Noi",
+            "#17a2b8"
+          );
+      }
+
+      // 5. Produse
+      async function runObjective5() {
+        const ts = getTimestamps("obj5");
+        if (!ts) return;
+        const data = await fetchData(
+          `${API}/admin/stats/products-popularity?start=${ts.start}&end=${ts.end}`
+        );
+        if (data) {
+          document.getElementById("obj5-result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+          // Transformă obiectul în arrays pentru grafic
+          const labels = Object.keys(data);
+          const values = Object.values(data);
+          drawBarChart(
+            "obj5-chart",
+            labels,
+            values,
+            "Vânzări Produse",
+            "#28a745"
+          );
+        }
+      }
+
+      // ==========================================
+      // FUNCTII DESENARE CANVAS
+      // ==========================================
+
+      function drawBarChart(id, labels, data, title, color = "#007bff") {
+        const cvs = document.getElementById(id);
+        cvs.style.display = "block";
+        // Setăm lățimea și înălțimea vizibilă a canvas-ului
+        const chartW = cvs.clientWidth; // Lățimea reală a containerului
+        cvs.width = chartW;
+        cvs.height = 500; // Am mărit înălțimea canvas-ului pentru a face loc etichetelor
+
+        const ctx = cvs.getContext("2d");
+        const W = cvs.width,
+          H = cvs.height;
+        // Am mărit padding-ul de jos (pBottom) pentru a include textul rotit,
+        // lăsând pTop neschimbat pentru titlu.
+        const pTop = 50,
+          pLeft = 50,
+          pRight = 20,
+          pBottom = 100;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // Verifică date
+        const maxVal = Math.max(...data, 1);
+        if (data.length === 0) {
+          ctx.textAlign = "center";
+          ctx.fillText("Nu există date în perioada selectată", W / 2, H / 2);
+          return;
+        }
+
+        const usableW = W - pLeft - pRight;
+        const usableH = H - pTop - pBottom;
+
+        const barW = (usableW / data.length) * 0.6;
+        const step = usableW / data.length;
+
+        // Axe
+        ctx.strokeStyle = "#999";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(pLeft, pTop);
+        ctx.lineTo(pLeft, H - pBottom);
+        ctx.lineTo(W - pRight, H - pBottom);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // Etichete Axa Y (simpla)
+        ctx.fillStyle = "#333";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(maxVal, pLeft - 5, pTop + 5);
+        ctx.fillText("0", pLeft - 5, H - pBottom + 5);
+
+        // Calcul pas afișare etichete (pentru a nu aglomera axa X)
+        const maxLabels = 12; // Maxim 12 etichete pe axă
+        const labelSkip = Math.ceil(labels.length / maxLabels);
+
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        data.forEach((val, i) => {
+          const h = (val / maxVal) * usableH;
+          const x = pLeft + i * step + step / 2 - barW / 2;
+          const y = H - pBottom - h;
+
+          // Bara
+          ctx.fillRect(x, y, barW, h);
+
+          // Valoarea deasupra
+          ctx.fillStyle = "#000";
+          ctx.fillText(val, x + barW / 2, y - 5);
+
+          // Eticheta jos (rotita) - DOAR la intervale calculate
+          if (i % labelSkip === 0) {
+            ctx.save();
+            // Punctul de rotație este baza barei (pe axa X)
+            ctx.translate(x + barW / 2, H - pBottom + 5);
+
+            // Rotim textul pentru a se vedea bine
+            ctx.rotate(Math.PI / 4); // 45 grade
+            ctx.textAlign = "left"; // Textul pornește de la baza barei
+
+            ctx.fillStyle = "#333"; // Culoare text axa
+            ctx.fillText(labels[i], 0, 0);
+            ctx.restore();
           }
 
-          const res = await fetch(`${API}/admin/crud/${table}/${action}`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify(payload)
-          });
-          const json = await res.json();
-          document.getElementById('crudResult').textContent = JSON.stringify(json, null, 2);
-          if(res.ok && action === 'add') e.target.reset();
+          ctx.fillStyle = color; // Resetare culoare pentru următoarea bară
+        });
+
+        // Titlu
+        ctx.fillStyle = "#333";
+        ctx.font = "bold 18px sans-serif";
+        ctx.fillText(title, W / 2, 25);
       }
+
+      function drawPieChart(id, dataObj) {
+        const cvs = document.getElementById(id);
+        cvs.style.display = "block";
+        const ctx = cvs.getContext("2d");
+        const W = cvs.width,
+          H = cvs.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const total = Object.values(dataObj).reduce((a, b) => a + b, 0);
+        if (total === 0) {
+          ctx.fillStyle = "#333";
+          ctx.textAlign = "center";
+          ctx.fillText("Fără date în perioada selectată", W / 2, H / 2);
+          return;
+        }
+
+        let start = 0;
+        const colors = [
+          "#007bff",
+          "#28a745",
+          "#ffc107",
+          "#dc3545",
+          "#17a2b8",
+          "#6610f2",
+        ];
+        let i = 0;
+
+        Object.entries(dataObj).forEach(([lbl, val]) => {
+          const slice = (val / total) * 2 * Math.PI;
+
+          // Felie
+          ctx.beginPath();
+          ctx.moveTo(W / 2, H / 2);
+          ctx.arc(W / 2, H / 2, 100, start, start + slice);
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.fill();
+
+          // Legenda
+          ctx.fillRect(W - 130, 50 + i * 25, 15, 15);
+          ctx.fillStyle = "#333";
+          ctx.textAlign = "left";
+          ctx.fillText(
+            `${lbl}: ${val} (${Math.round((val / total) * 100)}%)`,
+            W - 110,
+            62 + i * 25
+          );
+
+          start += slice;
+          i++;
+        });
+      }
+
+      // Inițializare la încărcare
+      document.addEventListener("DOMContentLoaded", () => {
+        setDefaultDates();
+        // Selectează implicit primul tab
+        switchView("crud", document.querySelector(".tab-button.active"));
+      });
     </script>
   </body>
 </html>
