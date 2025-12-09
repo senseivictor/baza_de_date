@@ -64,7 +64,31 @@ TABLE_MODELS = {
     "orders": {"add": OrderCreate, "update": OrderUpdate, "primary_key": "order_id"}
 }
 
-# --- RUTE NOI PENTRU OBIECTIVE ---
+@app.post("/register-user")
+def register_user(req: RegisterRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT user_id FROM users_login_info WHERE name = %s", (req.name,))
+    row = cursor.fetchone()
+
+    if row:
+        user_id = row["user_id"]
+    else:
+        created_at = int(time.time())
+        cursor.execute(
+            "INSERT INTO users_login_info (name, created_at) VALUES (%s, %s)",
+            (req.name, created_at)
+        )
+        conn.commit()
+        user_id = cursor.lastrowid
+
+    conn.close()
+
+    return {
+        "status": "ok",
+        "user_id": user_id,
+    }
 
 @app.get("/admin/stats/order-status")
 def stats_order_status():
