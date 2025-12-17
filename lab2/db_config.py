@@ -1,9 +1,8 @@
-import pymysql
 
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "",
-    "database": "lab2",
-    "cursorclass": pymysql.cursors.DictCursor
+    "DRIVER": "{ODBC Driver 17 for SQL Server}", 
+    "SERVER": "127.0.0.1", 
+    "DATABASE": "victor_dwh", 
+    "UID": "victor", 
+    "PWD": "victor",
 }

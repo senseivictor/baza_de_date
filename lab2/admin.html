@@ -2,7 +2,7 @@
 <html lang="ro">
   <head>
     <meta charset="UTF-8" />
-    <title>Panou Admin Complet</title>
+    <title>Panou Admin DWH</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
@@ -135,7 +135,7 @@
       .objective-content {
         display: none;
         background: #fff;
-        border-left: 5px solid #007bff;
+        border-left: 5px solid #28a745; /* Green for Reports */
       }
 
       /* Layout Orizontal pentru Formulare (Flexbox) */
@@ -232,15 +232,15 @@
 
   <body>
     <div class="container">
-      <h2>Panou de Administrare</h2>
+      <h2>Panou de Administrare DWH</h2>
 
       <!-- Navigare -->
       <div class="nav-tabs">
         <button class="tab-button active" onclick="switchView('crud', this)">
           Administrare Date (CRUD)
         </button>
-        <button class="tab-button" onclick="switchView('objectives', this)">
-          Obiective & Statistici
+        <button class="tab-button" onclick="switchView('reports', this)">
+          Rapoarte DWH
         </button>
       </div>
 
@@ -248,19 +248,29 @@
       <!-- TAB 1: CRUD (Create, Read, Update, Delete) -->
       <!-- ========================================== -->
       <div id="crudView">
-        <h3>Selectează Tabela:</h3>
+        <h3>Selectează Tabela Dimensională/Fact:</h3>
         <div style="margin-bottom: 20px">
+          <button class="action-button" onclick="showCrudTable('DimUser')">
+            DimUser (Utilizatori)
+          </button>
+          <button class="action-button" onclick="showCrudTable('DimProduct')">
+            DimProduct (Produse)
+          </button>
+          <button class="action-button" onclick="showCrudTable('DimOrder')">
+            DimOrder (Comenzi)
+          </button>
+          <button class="action-button" onclick="showCrudTable('DimLocation')">
+            DimLocation (Locații)
+          </button>
+          <button class="action-button" onclick="showCrudTable('DimStatus')">
+            DimStatus (Statusuri)
+          </button>
+          <!-- NOU: Tabela Fact -->
           <button
             class="action-button"
-            onclick="showCrudTable('users_login_info')"
+            onclick="showCrudTable('FactOrderItems')"
           >
-            Utilizatori
-          </button>
-          <button class="action-button" onclick="showCrudTable('products')">
-            Produse
-          </button>
-          <button class="action-button" onclick="showCrudTable('orders')">
-            Comenzi
+            FactOrderItems (Tranzacții)
           </button>
         </div>
 
@@ -276,147 +286,117 @@
       </div>
 
       <!-- ========================================== -->
-      <!-- TAB 2: OBIECTIVE SI STATISTICI AVANSATE -->
+      <!-- TAB 2: RAPOARTE DWH -->
       <!-- ========================================== -->
-      <div id="objectivesView" style="display: none">
-        <h3>Rapoarte Detaliate</h3>
+      <div id="reportsView" style="display: none">
+        <h3>Rapoarte Agregate DWH</h3>
 
-        <!-- Obiectiv 1 -->
+        <!-- Raport 1 -->
         <button
           class="objective-button"
-          onclick="toggleObjective('obj1', this)"
+          onclick="toggleObjective('rep1', this)"
         >
-          1. Istoric Comenzi Utilizator (Căutare după Nume)
+          1. Produsul cu cel mai mare și cel mai mic volum de vânzări
         </button>
-        <div id="obj1" class="objective-content">
+        <div id="rep1" class="objective-content">
           <div class="date-range-selector">
-            <label>Perioada:</label>
-            <input type="date" id="start-obj1" />
+            <label>Perioada (Opțional pentru Filtrare pe Timp):</label>
+            <input type="date" id="start-rep1" />
             <span>până la</span>
-            <input type="date" id="end-obj1" />
+            <input type="date" id="end-rep1" />
+            <button class="action-button" onclick="runReport1()">
+              Generează Raport
+            </button>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Nume Utilizator</label>
-              <input type="text" id="obj1-name" placeholder="ex: Ion Popescu" />
-            </div>
-            <div class="form-group" style="flex: 0">
-              <button
-                class="action-button"
-                style="margin: 0"
-                onclick="runObjective1()"
-              >
-                Caută
-              </button>
-            </div>
-          </div>
-          <pre id="obj1-result"></pre>
+          <pre id="rep1-result"></pre>
         </div>
 
-        <!-- Obiectiv 2 -->
+        <!-- Raport 2 -->
         <button
           class="objective-button"
-          onclick="toggleObjective('obj2', this)"
+          onclick="toggleObjective('rep2', this)"
         >
-          2. Raport Status Comenzi (Finalizate vs Nefinisate)
+          2. Trimestrul cu cel mai mare profit total
         </button>
-        <div id="obj2" class="objective-content">
+        <div id="rep2" class="objective-content">
           <div class="date-range-selector">
-            <label>Perioada:</label>
-            <input type="date" id="start-obj2" />
+            <label>Perioada (Opțional pentru Filtrare pe Timp):</label>
+            <input type="date" id="start-rep2" />
             <span>până la</span>
-            <input type="date" id="end-obj2" />
-            <button class="action-button" onclick="runObjective2()">
+            <input type="date" id="end-rep2" />
+            <button class="action-button" onclick="runReport2()">
               Generează Raport
+            </button>
+          </div>
+          <pre id="rep2-result"></pre>
+        </div>
+
+        <!-- Raport 3 -->
+        <button
+          class="objective-button"
+          onclick="toggleObjective('rep3', this)"
+        >
+          3. Top 10 Utilizatori după numărul de comenzi distincte
+        </button>
+        <div id="rep3" class="objective-content">
+          <div class="date-range-selector">
+            <label>Perioada (Opțional pentru Filtrare pe Timp):</label>
+            <input type="date" id="start-rep3" />
+            <span>până la</span>
+            <input type="date" id="end-rep3" />
+            <button class="action-button" onclick="runReport3()">
+              Generează Raport
+            </button>
+          </div>
+          <pre id="rep3-result"></pre>
+        </div>
+
+        <!-- Raport 4 -->
+        <button
+          class="objective-button"
+          onclick="toggleObjective('rep4', this)"
+        >
+          4. Procentul mediu de discount (Weekend vs. Zile Săptămânale)
+        </button>
+        <div id="rep4" class="objective-content">
+          <div class="date-range-selector">
+            <label>Perioada (Opțional pentru Filtrare pe Timp):</label>
+            <input type="date" id="start-rep4" />
+            <span>până la</span>
+            <input type="date" id="end-rep4" />
+            <button class="action-button" onclick="runReport4()">
+              Generează Raport & Grafic
             </button>
           </div>
           <div style="text-align: center">
             <canvas
-              id="obj2-chart"
+              id="rep4-chart"
               width="400"
               height="400"
               style="display: none; margin: 0 auto"
             ></canvas>
           </div>
-          <pre id="obj2-result"></pre>
+          <pre id="rep4-result"></pre>
         </div>
 
-        <!-- Obiectiv 3 -->
+        <!-- Raport 5 -->
         <button
           class="objective-button"
-          onclick="toggleObjective('obj3', this)"
+          onclick="toggleObjective('rep5', this)"
         >
-          3. Evoluția Zilnică a Comenzilor
+          5. Clasificarea Produselor după Volumul Total de Vânzări
         </button>
-        <div id="obj3" class="objective-content">
+        <div id="rep5" class="objective-content">
           <div class="date-range-selector">
-            <label>Perioada:</label>
-            <input type="date" id="start-obj3" />
+            <label>Perioada (Opțional pentru Filtrare pe Timp):</label>
+            <input type="date" id="start-rep5" />
             <span>până la</span>
-            <input type="date" id="end-obj3" />
-            <button class="action-button" onclick="runObjective3()">
-              Afisează Grafic
+            <input type="date" id="end-rep5" />
+            <button class="action-button" onclick="runReport5()">
+              Generează Raport
             </button>
           </div>
-          <canvas
-            id="obj3-chart"
-            width="800"
-            height="500"
-            style="display: none"
-          ></canvas>
-        </div>
-
-        <!-- Obiectiv 4 -->
-        <button
-          class="objective-button"
-          onclick="toggleObjective('obj4', this)"
-        >
-          4. Utilizatori Noi Înregistrați
-        </button>
-        <div id="obj4" class="objective-content">
-          <div class="date-range-selector">
-            <label>Perioada:</label>
-            <input type="date" id="start-obj4" />
-            <span>până la</span>
-            <input type="date" id="end-obj4" />
-            <button class="action-button" onclick="runObjective4()">
-              Afisează Statistică
-            </button>
-          </div>
-          <canvas
-            id="obj4-chart"
-            width="800"
-            height="500"
-            style="display: none"
-          ></canvas>
-        </div>
-
-        <!-- Obiectiv 5 -->
-        <button
-          class="objective-button"
-          onclick="toggleObjective('obj5', this)"
-        >
-          5. Popularitate Produse
-        </button>
-        <div id="obj5" class="objective-content">
-          <div class="date-range-selector">
-            <label>Perioada:</label>
-            <input type="date" id="start-obj5" />
-            <span>până la</span>
-            <input type="date" id="end-obj5" />
-            <button class="action-button" onclick="runObjective5()">
-              Analizează Vânzări
-            </button>
-          </div>
-          <div style="text-align: center">
-            <canvas
-              id="obj5-chart"
-              width="600"
-              height="400"
-              style="display: none; margin: 0 auto"
-            ></canvas>
-          </div>
-          <pre id="obj5-result"></pre>
+          <pre id="rep5-result"></pre>
         </div>
       </div>
     </div>
@@ -437,8 +417,8 @@
         const fmt = (d) => d.toISOString().split("T")[0];
 
         for (let i = 1; i <= 5; i++) {
-          const startEl = document.getElementById(`start-obj${i}`);
-          const endEl = document.getElementById(`end-obj${i}`);
+          const startEl = document.getElementById(`start-rep${i}`);
+          const endEl = document.getElementById(`end-rep${i}`);
           if (startEl && endEl) {
             startEl.value = fmt(lastWeek);
             endEl.value = fmt(today);
@@ -447,9 +427,9 @@
       }
 
       // Validare și conversie date în Timestamp UNIX
-      function getTimestamps(objId) {
-        const sVal = document.getElementById(`start-${objId}`).value;
-        const eVal = document.getElementById(`end-${objId}`).value;
+      function getTimestamps(repId) {
+        const sVal = document.getElementById(`start-${repId}`).value;
+        const eVal = document.getElementById(`end-${repId}`).value;
 
         if (!sVal || !eVal) {
           alert("Vă rugăm selectați ambele date (Început și Sfârșit)!");
@@ -469,7 +449,9 @@
       }
 
       // Fetch Wrapper cu Error Handling
-      async function fetchData(endpoint) {
+      async function fetchData(endpoint, resultElementId) {
+        document.getElementById(resultElementId).textContent =
+          "Se rulează raportul...";
         try {
           const url = endpoint.startsWith("http")
             ? endpoint
@@ -481,10 +463,19 @@
               errData.detail || `HTTP ${res.status}: ${res.statusText}`
             );
           }
-          return await res.json();
+          const data = await res.json();
+          document.getElementById(resultElementId).textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+          return data;
         } catch (e) {
           alert("Eroare API: " + e.message);
           console.error(e);
+          document.getElementById(
+            resultElementId
+          ).textContent = `Eroare: ${e.message}`;
           return null;
         }
       }
@@ -496,13 +487,14 @@
           .forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
 
-        ["crudView", "objectivesView"].forEach((id) => {
+        ["crudView", "reportsView"].forEach((id) => {
+          // Schimbat 'objectivesView' in 'reportsView'
           document.getElementById(id).style.display = "none";
         });
         document.getElementById(viewName + "View").style.display = "block";
       }
 
-      // Acordion Obiective
+      // Acordion Obiective/Rapoarte
       function toggleObjective(id, btn) {
         const el = document.getElementById(id);
         const isOpen = el.style.display === "block";
@@ -534,9 +526,12 @@
           delete: "Șterge",
         };
         const tables = {
-          users_login_info: "Utilizator",
-          products: "Produs",
-          orders: "Comandă",
+          DimUser: "Utilizator (DimUser)",
+          DimProduct: "Produs (DimProduct)",
+          DimOrder: "Comandă (DimOrder)",
+          DimLocation: "Locație (DimLocation)",
+          DimStatus: "Status (DimStatus)",
+          FactOrderItems: "Tranzacție (FactOrderItems)", // Eticheta noua
         };
         return {
           actionLabel: actions[actionType] || actionType,
@@ -549,31 +544,10 @@
         container.innerHTML = "";
         document.getElementById(
           "crudResult"
-        ).textContent = `Se lucrează pe tabela: ${tableName.toUpperCase()}`;
+        ).textContent = `Se lucrează pe tabela: ${tableName}`;
 
-        // Definire câmpuri
-        let fields = [];
-        if (tableName === "users_login_info")
-          fields = [
-            { name: "user_id", type: "INT" },
-            { name: "name", type: "VARCHAR" },
-            { name: "created_at", type: "INT" },
-          ];
-        else if (tableName === "products")
-          fields = [
-            { name: "product_id", type: "INT" },
-            { name: "name", type: "VARCHAR" },
-            { name: "price", type: "DECIMAL" },
-          ];
-        else if (tableName === "orders")
-          fields = [
-            { name: "order_id", type: "INT" },
-            { name: "order_public_id", type: "VARCHAR" },
-            { name: "user_id", type: "INT" },
-            { name: "products", type: "TEXT" },
-            { name: "order_status", type: "VARCHAR" },
-            { name: "created_at", type: "INT" },
-          ];
+        // Câmpurile sunt preluate direct din cache
+        const fields = showCrudTable.fieldsCache[tableName];
 
         // Generare 3 formulare: Add, Update, Delete
         container.innerHTML += createForm(tableName, fields, "add");
@@ -587,62 +561,118 @@
 
         let html = `<div class="crud-form-section"><h4>${labels.actionLabel} ${labels.tableLabel}</h4>`;
 
-        // Avertisment specific pentru Foreign Key
-        if (tableName === "orders" && actionType === "add") {
-          html += `<div class="warning-note"><strong>Notă:</strong> User ID și ID-urile produselor trebuie să existe deja în bază.</div>`;
+        // Notificări specifice tabelelor
+        if (
+          actionType === "add" &&
+          tableName !== "DimLocation" &&
+          tableName !== "DimProduct"
+        ) {
+          html += `<div class="warning-note"><strong>Notă:</strong> Câmpurile ID (PK/FK) necesită valori existente. Câmpurile IDENTITY (precum ${
+            fields.find((f) => f.isIdentity)?.name || "N/A"
+          }) vor fi ignorate la ADĂUGARE.</div>`;
+        }
+        if (tableName === "DimOrder" && actionType !== "delete") {
+          html += `<div class="warning-note"><strong>DimOrder:</strong> 'products' trebuie să fie o listă de ID-uri separate prin virgulă (ex: 1, 2, 3) sau format JSON. 'user_id' și 'status_id' sunt FK-uri.</div>`;
+        }
+        if (tableName === "FactOrderItems" && actionType !== "delete") {
+          html += `<div class="warning-note"><strong>FactOrderItems:</strong> Toate câmpurile ID (FK) trebuie să existe în tabelele dimensionale respective. 'sales_amount' și 'profit_margin' sunt obligatorii.</div>`;
         }
 
         html += `<form id="${formId}" onsubmit="handleCrudSubmit(event, '${tableName}', '${actionType}')"><div class="form-row">`;
 
-        // ID Input (except Add)
-        if (actionType !== "add") {
-          const idField = fields[0].name; // Primul câmp e mereu PK
-          html += `<div class="form-group"><label>${idField.toUpperCase()} (ID)</label><input type="number" name="${idField}" required></div>`;
+        const pkField = fields.find((f) => f.isPK);
+
+        // ID Input (obligatoriu pentru Update/Delete, opțional pentru Add dacă nu e Identity)
+        if (pkField) {
+          const isIdentity = pkField.isIdentity;
+          const isRequired = actionType !== "add";
+
+          if (isRequired || !isIdentity) {
+            html += `<div class="form-group"><label>${pkField.name.toUpperCase()} (ID)</label>
+                          <input type="number" name="${pkField.name}" ${
+              isRequired ? "required" : ""
+            } placeholder="${pkField.name}${
+              isIdentity && actionType === "add" ? " (Ignorat)" : ""
+            }"></div>`;
+          }
         }
 
-        // Restul câmpurilor (except Delete)
+        // Restul câmpurilor
         if (actionType !== "delete") {
           fields.forEach((field) => {
-            // Filtrare logică
-            if (
-              field.name.endsWith("_id") &&
-              actionType === "add" &&
-              field.name !== "user_id"
-            )
-              return;
-            if (field.name.includes("_id") && actionType === "update") return;
-            if (field.name === fields[0].name) return; // Skip PK
+            if (field.isPK && actionType !== "add") return; // PK handled above for update/delete
+            if (field.isPK && field.isIdentity && actionType === "add") return; // Skip Identity PK on Add
 
-            let type =
-              field.type === "INT" || field.type === "DECIMAL"
-                ? "number"
-                : "text";
+            let type = "text";
             let placeholder = field.name;
-            let required =
-              actionType === "add" &&
-              !field.name.includes("_id") &&
-              !field.name.includes("created_at")
-                ? "required"
-                : "";
+            let required = "";
+            let helpText = "";
 
-            // Personalizări specifice
-            if (field.name.includes("created_at")) {
+            // Tipuri și Placeholdere/Required generice
+            if (
+              [
+                "INT",
+                "FLOAT",
+                "DECIMAL",
+                "TINYINT",
+                "MONEY",
+                "BIGINT",
+              ].includes(field.type.toUpperCase())
+            ) {
               type = "number";
-              placeholder = "Unix Timestamp (Opțional)";
-              required = "";
             }
-            if (tableName === "orders" && field.name === "products") {
-              type = "text";
-              placeholder = "ID-uri ex: 1, 2, 3";
+            if (field.name.includes("created_at")) {
+              placeholder = "Unix Timestamp (Secunde)";
               required = actionType === "add" ? "required" : "";
             }
-            if (field.name === "order_public_id") {
-              placeholder = "Auto-generat (Opțional)";
-              required = "";
+            if (field.name === "is_final") {
+              placeholder = "1 (Final) sau 0 (Nu)";
+              required = "required";
+            }
+            if (field.name === "products") {
+              placeholder = "Ex: 1, 2, 3 sau [1, 2]";
             }
 
-            html += `<div class="form-group"><label>${field.name}</label>
-                           <input type="${type}" name="${field.name}" placeholder="${placeholder}" ${required}></div>`;
+            // Required pentru câmpurile non-nullable/non-identity în ADD
+            if (
+              actionType === "add" &&
+              !field.isNullable &&
+              !field.isIdentity &&
+              !field.isPK
+            ) {
+              required = "required";
+            }
+
+            // Configurare specifică FK FactOrderItems
+            if (tableName === "FactOrderItems" && field.isFK) {
+              const dimName = field.name.replace("_id", ""); // e.g., 'order' -> 'DimOrder'
+              helpText = ` (FK Dim${
+                dimName.charAt(0).toUpperCase() + dimName.slice(1)
+              })`;
+            }
+
+            // Configurare specifică Măsuri FactOrderItems
+            if (tableName === "FactOrderItems") {
+              if (field.name === "profit_margin") {
+                placeholder = "Ex: 0.15 (Procent zecimal)";
+              } else if (field.name === "sales_amount") {
+                placeholder = "Valoare totală vânzare";
+                required = "required";
+              }
+            }
+
+            html += `<div class="form-group"><label>${
+              field.name
+            }${helpText}</label>
+                           <input type="${type}" name="${
+              field.name
+            }" placeholder="${placeholder}" ${required} 
+                           ${
+                             actionType === "update" &&
+                             field.name === "order_public_id"
+                               ? "readonly"
+                               : ""
+                           } ></div>`;
           });
         }
 
@@ -660,21 +690,27 @@
           const val = value.trim();
           if (val === "") continue;
 
-          // Procesare specială pentru 'products' în 'orders'
-          if (tableName === "orders" && key === "products") {
-            if (!val.startsWith("[")) {
-              // Converteste "1, 2" -> "[1, 2]"
+          // Conversie tipuri DWH
+          const field = showCrudTable.fieldsCache[tableName].find(
+            (f) => f.name === key
+          );
+          const fieldType = field ? field.type.toUpperCase() : "";
+
+          if (key === "products") {
+            // Converteste "1, 2, 3" -> "[1, 2, 3]" daca nu e deja JSON
+            if (!val.startsWith("[") && !val.endsWith("]")) {
               const arr = val
                 .split(",")
                 .map((s) => Number(s.trim()))
-                .filter((n) => !isNaN(n));
+                .filter((n) => !isNaN(n) && n > 0);
               payload[key] = JSON.stringify(arr);
             } else {
-              payload[key] = val;
+              payload[key] = val; // Presupunem ca e deja JSON valid
             }
-          }
-          // Conversie numerică
-          else if (
+          } else if (
+            ["INT", "FLOAT", "DECIMAL", "TINYINT", "MONEY", "BIGINT"].includes(
+              fieldType
+            ) ||
             key.includes("id") ||
             key.includes("created_at") ||
             key === "price"
@@ -688,7 +724,7 @@
 
         document.getElementById(
           "crudResult"
-        ).textContent = `Se trimite cererea ${actionType.toUpperCase()}...`;
+        ).textContent = `Se trimite cererea ${actionType.toUpperCase()} pe ${tableName}...`;
 
         try {
           const res = await fetch(
@@ -717,124 +753,143 @@
         }
       }
 
+      // Cache-ul de câmpuri pentru a fi accesibil în handleCrudSubmit
+      showCrudTable.fieldsCache = {
+        DimUser: [
+          { name: "user_id", type: "INT", isPK: true, isIdentity: true },
+          { name: "nume", type: "VARCHAR" },
+          { name: "created_at", type: "INT" },
+          { name: "location_id", type: "INT" },
+        ],
+        DimProduct: [
+          { name: "product_id", type: "INT", isPK: true },
+          { name: "name", type: "VARCHAR" },
+          { name: "price", type: "FLOAT" },
+        ],
+        DimOrder: [
+          { name: "order_id", type: "INT", isPK: true, isIdentity: true },
+          { name: "order_public_id", type: "VARCHAR" },
+          { name: "user_id", type: "INT" },
+          { name: "products", type: "VARCHAR" },
+          { name: "order_status", type: "VARCHAR" },
+          { name: "created_at", type: "INT" },
+          { name: "status_id", type: "INT" },
+          { name: "created_time_id", type: "INT" },
+        ],
+        DimLocation: [
+          { name: "location_id", type: "INT", isPK: true },
+          { name: "country", type: "VARCHAR" },
+          { name: "region", type: "VARCHAR" },
+        ],
+        DimStatus: [
+          { name: "status_id", type: "INT", isPK: true, isIdentity: true },
+          { name: "status_name", type: "VARCHAR" },
+          { name: "is_final", type: "TINYINT" },
+        ],
+        // INCLUZĂND FactOrderItems
+        FactOrderItems: [
+          { name: "fact_id", type: "BIGINT", isPK: true, isIdentity: true },
+          { name: "order_id", type: "INT", isFK: true, isNullable: false },
+          { name: "user_id", type: "INT", isFK: true, isNullable: false },
+          { name: "product_id", type: "INT", isFK: true, isNullable: false },
+          { name: "time_id", type: "INT", isFK: true, isNullable: false },
+          { name: "status_id", type: "INT", isFK: true, isNullable: false },
+          { name: "location_id", type: "INT", isFK: true, isNullable: false },
+          { name: "sales_amount", type: "MONEY", isNullable: false },
+          { name: "profit_margin", type: "FLOAT", isNullable: false },
+          { name: "discount_amount", type: "MONEY", isNullable: true },
+        ],
+      };
+
       // ==========================================
-      // LOGICA TAB 2: OBIECTIVE (STATISTICI)
+      // LOGICA TAB 2: RAPOARTE DWH (runReportX)
       // ==========================================
 
-      // 1. Caută User
-      async function runObjective1() {
-        const name = document.getElementById("obj1-name").value;
-        const ts = getTimestamps("obj1");
-        if (!name || !ts) return;
-
-        document.getElementById("obj1-result").textContent = "Se caută...";
-        const data = await fetchData(
-          `${API}/admin/stats/user-orders?name=${encodeURIComponent(
-            name
-          )}&start=${ts.start}&end=${ts.end}`
+      // 1. Produsul cu cel mai mare și cel mai mic volum de vânzări
+      async function runReport1() {
+        const ts = getTimestamps("rep1");
+        if (!ts) return;
+        await fetchData(
+          `/admin/reports/top-low-sales?start=${ts.start}&end=${ts.end}`,
+          "rep1-result"
         );
-        if (data)
-          document.getElementById("obj1-result").textContent = JSON.stringify(
-            data,
-            null,
-            2
-          );
       }
 
-      // 2. Status Pie Chart
-      async function runObjective2() {
-        const ts = getTimestamps("obj2");
+      // 2. Trimestrul cu cel mai mare profit total
+      async function runReport2() {
+        const ts = getTimestamps("rep2");
         if (!ts) return;
-
-        const data = await fetchData(
-          `${API}/admin/stats/order-status?start=${ts.start}&end=${ts.end}`
+        await fetchData(
+          `/admin/reports/top-quarter-profit?start=${ts.start}&end=${ts.end}`,
+          "rep2-result"
         );
-        if (data) {
-          document.getElementById("obj2-result").textContent = JSON.stringify(
-            data,
-            null,
-            2
+      }
+
+      // 3. Top 10 Utilizatori după numărul de comenzi distincte
+      async function runReport3() {
+        const ts = getTimestamps("rep3");
+        if (!ts) return;
+        await fetchData(
+          `/admin/reports/top-10-users-orders?start=${ts.start}&end=${ts.end}`,
+          "rep3-result"
+        );
+      }
+
+      // 4. Procentul mediu de discount (Weekend vs. Zile Săptămânale)
+      async function runReport4() {
+        const ts = getTimestamps("rep4");
+        if (!ts) return;
+        const data = await fetchData(
+          `/admin/reports/avg-discount-weekend-vs-weekday?start=${ts.start}&end=${ts.end}`,
+          "rep4-result"
+        );
+
+        if (data && Array.isArray(data) && data.length > 0) {
+          // Datele sunt in format [{Perioada: 'Weekend', Procent_Mediu_Discount: X}, ...]
+          const labels = data.map((item) => item.Perioada);
+          // Scalăm procentul cu 100 pentru a-l afișa ca număr întreg vizibil pe grafic
+          const values = data.map((item) =>
+            Math.round(item.Procent_Mediu_Discount)
           );
-          drawPieChart("obj2-chart", data);
+          drawPieChart(
+            "rep4-chart",
+            {
+              [labels[0]]: values[0],
+              [labels[1]]: values[1],
+            },
+            "Procent Mediu Discount (%)"
+          );
+        } else {
+          document.getElementById("rep4-chart").style.display = "none";
         }
       }
 
-      // 3. Comenzi Zilnice
-      async function runObjective3() {
-        const ts = getTimestamps("obj3");
+      // 5. Clasificarea Produselor după Volumul Total de Vânzări
+      async function runReport5() {
+        const ts = getTimestamps("rep5");
         if (!ts) return;
-        const data = await fetchData(
-          `${API}/admin/stats/daily-orders?start=${ts.start}&end=${ts.end}`
+        await fetchData(
+          `/admin/reports/product-sales-classification?start=${ts.start}&end=${ts.end}`,
+          "rep5-result"
         );
-        if (data)
-          drawBarChart(
-            "obj3-chart",
-            data.dates,
-            data.counts,
-            "Comenzi Zilnice"
-          );
-      }
-
-      // 4. Useri Noi
-      async function runObjective4() {
-        const ts = getTimestamps("obj4");
-        if (!ts) return;
-        const data = await fetchData(
-          `${API}/admin/stats/new-users?start=${ts.start}&end=${ts.end}`
-        );
-        if (data)
-          drawBarChart(
-            "obj4-chart",
-            data.dates,
-            data.counts,
-            "Utilizatori Noi",
-            "#17a2b8"
-          );
-      }
-
-      // 5. Produse
-      async function runObjective5() {
-        const ts = getTimestamps("obj5");
-        if (!ts) return;
-        const data = await fetchData(
-          `${API}/admin/stats/products-popularity?start=${ts.start}&end=${ts.end}`
-        );
-        if (data) {
-          document.getElementById("obj5-result").textContent = JSON.stringify(
-            data,
-            null,
-            2
-          );
-          // Transformă obiectul în arrays pentru grafic
-          const labels = Object.keys(data);
-          const values = Object.values(data);
-          drawBarChart(
-            "obj5-chart",
-            labels,
-            values,
-            "Vânzări Produse",
-            "#28a745"
-          );
-        }
       }
 
       // ==========================================
-      // FUNCTII DESENARE CANVAS
+      // FUNCTII DESENARE CANVAS (Păstrate de la cererea anterioară)
       // ==========================================
 
       function drawBarChart(id, labels, data, title, color = "#007bff") {
         const cvs = document.getElementById(id);
         cvs.style.display = "block";
         // Setăm lățimea și înălțimea vizibilă a canvas-ului
-        const chartW = cvs.clientWidth; // Lățimea reală a containerului
+        const chartW = cvs.clientWidth;
         cvs.width = chartW;
-        cvs.height = 500; // Am mărit înălțimea canvas-ului pentru a face loc etichetelor
+        cvs.height = 500; // Înălțimea mărită, conform cererii anterioare
 
         const ctx = cvs.getContext("2d");
         const W = cvs.width,
           H = cvs.height;
-        // Am mărit padding-ul de jos (pBottom) pentru a include textul rotit,
-        // lăsând pTop neschimbat pentru titlu.
+        // Padding de jos mărit pentru etichetele rotite
         const pTop = 50,
           pLeft = 50,
           pRight = 20,
@@ -891,17 +946,14 @@
           ctx.fillStyle = "#000";
           ctx.fillText(val, x + barW / 2, y - 5);
 
-          // Eticheta jos (rotita) - DOAR la intervale calculate
+          // Eticheta jos (rotita)
           if (i % labelSkip === 0) {
             ctx.save();
-            // Punctul de rotație este baza barei (pe axa X)
             ctx.translate(x + barW / 2, H - pBottom + 5);
-
-            // Rotim textul pentru a se vedea bine
             ctx.rotate(Math.PI / 4); // 45 grade
-            ctx.textAlign = "left"; // Textul pornește de la baza barei
+            ctx.textAlign = "left";
 
-            ctx.fillStyle = "#333"; // Culoare text axa
+            ctx.fillStyle = "#333";
             ctx.fillText(labels[i], 0, 0);
             ctx.restore();
           }
@@ -915,7 +967,7 @@
         ctx.fillText(title, W / 2, 25);
       }
 
-      function drawPieChart(id, dataObj) {
+      function drawPieChart(id, dataObj, title = "Distributie") {
         const cvs = document.getElementById(id);
         cvs.style.display = "block";
         const ctx = cvs.getContext("2d");
@@ -957,7 +1009,9 @@
           ctx.fillStyle = "#333";
           ctx.textAlign = "left";
           ctx.fillText(
-            `${lbl}: ${val} (${Math.round((val / total) * 100)}%)`,
+            `${lbl}: ${val}${title.includes("%") ? "%" : ""} (${Math.round(
+              (val / total) * 100
+            )}%)`,
             W - 110,
             62 + i * 25
           );
@@ -965,6 +1019,12 @@
           start += slice;
           i++;
         });
+
+        // Titlu
+        ctx.fillStyle = "#333";
+        ctx.font = "bold 16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(title, W / 2, 25);
       }
 
       // Inițializare la încărcare

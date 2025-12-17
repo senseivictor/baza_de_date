@@ -10,4 +10,5 @@ lab2:
 mysql -u root
 CREATE DATABASE lab2;
 exit
+.venv/scripts/activate
 uvicorn lab2.api:app --reload --port 8000

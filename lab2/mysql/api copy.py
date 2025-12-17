@@ -1,0 +1,420 @@
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import pymysql
+import uuid
+import time
+from datetime import datetime, timedelta
+import json
+from .db_config import DB_CONFIG
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def get_db():
+    return pymysql.connect(**DB_CONFIG)
+
+# --- Modele Pydantic ---
+class OrderRequest(BaseModel):
+    user_id: int
+    products: list[int]
+
+class RegisterRequest(BaseModel):
+    name: str
+
+# Modele CRUD
+class UserCreate(BaseModel):
+    name: str
+class UserUpdate(BaseModel):
+    user_id: int
+    name: str | None = None
+    created_at: int | None = None
+class ProductCreate(BaseModel):
+    name: str
+    price: float
+class ProductUpdate(BaseModel):
+    product_id: int
+    name: str | None = None
+    price: float | None = None
+class OrderCreate(BaseModel):
+    user_id: int
+    products: str 
+    order_status: str
+    order_public_id: str | None = None
+    created_at: int | None = None
+class OrderUpdate(BaseModel):
+    order_id: int
+    user_id: int | None = None
+    products: str | None = None
+    order_status: str | None = None
+    order_public_id: str | None = None
+    created_at: int | None = None
+
+# Configurare CRUD
+TABLE_MODELS = {
+    "users_login_info": {"add": UserCreate, "update": UserUpdate, "primary_key": "user_id"},
+    "products": {"add": ProductCreate, "update": ProductUpdate, "primary_key": "product_id"},
+    "orders": {"add": OrderCreate, "update": OrderUpdate, "primary_key": "order_id"}
+}
+
+@app.post("/register-user")
+def register_user(req: RegisterRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT user_id FROM users_login_info WHERE name = %s", (req.name,))
+    row = cursor.fetchone()
+
+    if row:
+        user_id = row["user_id"]
+    else:
+        created_at = int(time.time())
+        cursor.execute(
+            "INSERT INTO users_login_info (name, created_at) VALUES (%s, %s)",
+            (req.name, created_at)
+        )
+        conn.commit()
+        user_id = cursor.lastrowid
+
+    conn.close()
+
+    return {
+        "status": "ok",
+        "user_id": user_id,
+    }
+
+@app.get("/admin/stats/user-orders")
+def get_user_orders_by_name(
+    name: str, 
+    start: int = Query(..., description="Start Timestamp"), 
+    end: int = Query(..., description="End Timestamp")
+):
+    """Obiectiv 1: Comenzi utilizator după NUME și Interval de Timp"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # 1. Găsim ID-ul utilizatorului pe baza numelui
+    cursor.execute("SELECT user_id FROM users_login_info WHERE name = %s", (name,))
+    user = cursor.fetchone()
+    
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Utilizatorul nu a fost găsit.")
+    
+    user_id = user['user_id']
+
+    # 2. Luăm comenzile în intervalul de timp
+    cursor.execute("""
+        SELECT order_id, order_public_id, products, order_status, created_at 
+        FROM orders 
+        WHERE user_id = %s AND created_at >= %s AND created_at <= %s
+        ORDER BY created_at DESC
+    """, (user_id, start, end))
+    
+    orders = cursor.fetchall()
+    
+    # 3. Rezolvăm numele produselor
+    cursor.execute("SELECT product_id, name FROM products")
+    product_lookup = {row["product_id"]: row["name"] for row in cursor.fetchall()}
+    conn.close()
+
+    result = []
+    for r in orders:
+        try:
+            p_ids = json.loads(r["products"])
+            # Fallback dacă e int
+            if isinstance(p_ids, int): p_ids = [p_ids]
+            p_names = [product_lookup.get(pid, f"ID {pid}") for pid in p_ids]
+        except: 
+            p_names = ["Eroare date produse"]
+        
+        result.append({
+            "order_id": r["order_id"],
+            "products": ", ".join(p_names),
+            "status": r["order_status"],
+            "date": datetime.fromtimestamp(r["created_at"]).strftime("%Y-%m-%d %H:%M")
+        })
+
+    return {"user": name, "count": len(result), "orders": result}
+
+
+@app.get("/admin/stats/order-status")
+def stats_order_status(
+    start: int = Query(...), 
+    end: int = Query(...)
+):
+    """Obiectiv 2: Statistica Status Comenzi în interval"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT order_status, COUNT(*) as count 
+        FROM orders 
+        WHERE created_at >= %s AND created_at <= %s
+        GROUP BY order_status
+    """, (start, end))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    return {row['order_status']: row['count'] for row in rows}
+
+
+@app.get("/admin/stats/daily-orders")
+def stats_daily_orders(
+    start: int = Query(...), 
+    end: int = Query(...)
+):
+    """Obiectiv 3: Comenzi zilnice în interval flexibil"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT created_at FROM orders 
+        WHERE created_at >= %s AND created_at <= %s
+    """, (start, end))
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Generăm dicționarul cu toate zilele din interval (pentru a avea 0 acolo unde nu sunt comenzi)
+    counts = {}
+    current_ts = start
+    while current_ts <= end:
+        day_str = datetime.fromtimestamp(current_ts).strftime("%Y-%m-%d")
+        counts[day_str] = 0
+        current_ts += 86400 # +1 zi în secunde
+
+    # Populăm cu datele reale
+    for row in rows:
+        day = datetime.fromtimestamp(row["created_at"]).strftime("%Y-%m-%d")
+        if day in counts:
+            counts[day] += 1
+        else:
+            # Caz limită (fus orar etc), adăugăm cheia
+            counts[day] = counts.get(day, 0) + 1
+
+    return {"dates": list(counts.keys()), "counts": list(counts.values())}
+
+
+@app.get("/admin/stats/new-users")
+def stats_new_users(
+    start: int = Query(...), 
+    end: int = Query(...)
+):
+    """Obiectiv 4: Utilizatori noi în interval"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT created_at FROM users_login_info 
+        WHERE created_at >= %s AND created_at <= %s
+    """, (start, end))
+    rows = cursor.fetchall()
+    conn.close()
+
+    counts = {}
+    current_ts = start
+    while current_ts <= end:
+        day_str = datetime.fromtimestamp(current_ts).strftime("%Y-%m-%d")
+        counts[day_str] = 0
+        current_ts += 86400
+
+    for row in rows:
+        day = datetime.fromtimestamp(row["created_at"]).strftime("%Y-%m-%d")
+        if day in counts:
+            counts[day] += 1
+        else:
+            counts[day] = counts.get(day, 0) + 1
+
+    return {"dates": list(counts.keys()), "counts": list(counts.values())}
+
+
+@app.get("/admin/stats/products-popularity")
+def stats_products(
+    start: int = Query(...), 
+    end: int = Query(...)
+):
+    """Obiectiv 5: Produse populare în interval"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Selectăm doar comenzile din interval
+    cursor.execute("""
+        SELECT products FROM orders 
+        WHERE created_at >= %s AND created_at <= %s
+    """, (start, end))
+    orders = cursor.fetchall()
+    
+    cursor.execute("SELECT product_id, name FROM products")
+    products_db = cursor.fetchall()
+    product_map = {p['product_id']: p['name'] for p in products_db}
+    conn.close()
+
+    product_counts = {}
+
+    for order in orders:
+        try:
+            prod_ids = json.loads(order['products'])
+            if isinstance(prod_ids, int): prod_ids = [prod_ids]
+            
+            for pid in prod_ids:
+                p_name = product_map.get(pid, f"ID {pid}")
+                product_counts[p_name] = product_counts.get(p_name, 0) + 1
+        except:
+            continue
+
+    return product_counts
+
+# --- RESTUL RUTELOR EXISTENTE (Păstrate pentru compatibilitate) ---
+
+@app.post("/admin/crud/{table_name}/{action}")
+def crud_operation(table_name: str, action: str, payload: dict):
+    if table_name not in TABLE_MODELS:
+        raise HTTPException(status_code=404, detail=f"Tabelă necunoscută: {table_name}")
+    if action not in ["add", "update", "delete"]:
+        raise HTTPException(status_code=404, detail=f"Acțiune necunoscută: {action}")
+
+    model_config = TABLE_MODELS[table_name]
+    primary_key = model_config["primary_key"]
+    conn = get_db()
+    cursor = conn.cursor()
+
+    try:
+        if action == "delete":
+            pk_value = payload.get(primary_key)
+            if not pk_value:
+                raise HTTPException(status_code=400, detail=f"ID necesar.")
+            cursor.execute(f"DELETE FROM {table_name} WHERE {primary_key} = %s", (pk_value,))
+            if cursor.rowcount == 0: raise HTTPException(status_code=404, detail="Inregistrare negasita.")
+            conn.commit()
+            return {"status": "success", "action": "deleted"}
+
+        elif action == "add":
+            AddSchema = model_config["add"]
+            validated_data = AddSchema(**payload)
+            data_dict = validated_data.model_dump()
+            
+            # Defaults
+            if table_name == "orders":
+                if not data_dict.get('order_public_id'): data_dict['order_public_id'] = str(uuid.uuid4())
+                if not data_dict.get('created_at'): data_dict['created_at'] = int(time.time())
+            elif table_name == "users_login_info":
+                if not data_dict.get('created_at'): data_dict['created_at'] = int(time.time())
+
+            fields = ", ".join(data_dict.keys())
+            placeholders = ", ".join(["%s"] * len(data_dict))
+            values = tuple(data_dict.values())
+            cursor.execute(f"INSERT INTO {table_name} ({fields}) VALUES ({placeholders})", values)
+            conn.commit()
+            return {"status": "success", "action": "added", "id": cursor.lastrowid}
+
+        elif action == "update":
+            UpdateSchema = model_config["update"]
+            validated_data = UpdateSchema(**payload)
+            data_dict = validated_data.model_dump(exclude_none=True)
+            pk_value = data_dict.pop(primary_key, None)
+            
+            if not pk_value: raise HTTPException(status_code=400, detail="ID necesar.")
+            if not data_dict: raise HTTPException(status_code=400, detail="Fara date de actualizat.")
+            
+            set_clauses = [f"{key} = %s" for key in data_dict.keys()]
+            values = list(data_dict.values())
+            values.append(pk_value)
+            
+            cursor.execute(f"UPDATE {table_name} SET {', '.join(set_clauses)} WHERE {primary_key} = %s", tuple(values))
+            conn.commit()
+            return {"status": "success", "action": "updated"}
+
+    except pymysql.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Eroare SQL: {e}")
+    finally:
+        conn.close()
+
+@app.post("/process-order")
+def process_order(order: OrderRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+    order_public_id = str(uuid.uuid4())
+    created_at = int(time.time())
+    cursor.execute("INSERT INTO orders (order_public_id, user_id, products, order_status, created_at) VALUES (%s, %s, %s, %s, %s)", 
+                   (order_public_id, order.user_id, json.dumps(order.products), "completed", created_at))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "order_public_id": order_public_id}
+
+@app.get("/get-orders")
+def get_orders(userId: int):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM orders WHERE user_id = %s ORDER BY created_at DESC", (userId,))
+    rows = cursor.fetchall()
+    
+    cursor.execute("SELECT product_id, name FROM products")
+    product_lookup = {row["product_id"]: row["name"] for row in cursor.fetchall()}
+    conn.close()
+
+    data = []
+    for r in rows:
+        try:
+            p_ids = json.loads(r["products"])
+            p_names = [product_lookup.get(pid, "Unknown") for pid in p_ids]
+        except: p_names = ["Error"]
+        
+        data.append({
+            "order_id": r["order_id"],
+            "user_id": r["user_id"],
+            "products": ", ".join(p_names),
+            "order_status": r["order_status"],
+            "created_at": r["created_at"]
+        })
+    return data
+
+@app.get("/admin/latest-order")
+def latest_order():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1")
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+@app.get("/admin/completed-orders")
+def completed_orders():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM orders WHERE order_status = 'completed'")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+@app.get("/admin/pending-orders")
+def pending_orders():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM orders WHERE order_status = 'pending'")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+@app.get("/admin/orders-last-week")
+def orders_last_week():
+    conn = get_db()
+    cursor = conn.cursor()
+    one_week_ago = int(time.time()) - 7 * 86400
+    cursor.execute("SELECT created_at FROM orders WHERE created_at >= %s", (one_week_ago,))
+    rows = cursor.fetchall()
+    conn.close()
+    counts = {}
+    for i in range(7):
+        day = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
+        counts[day] = 0
+    for row in rows:
+        day = datetime.fromtimestamp(row["created_at"]).strftime("%Y-%m-%d")
+        if day in counts: counts[day] += 1
+    return {"dates": list(reversed(list(counts.keys()))), "counts": list(reversed(list(counts.values())))}
