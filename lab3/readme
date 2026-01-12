@@ -1,10 +1,9 @@
+rezultate_vizuale.py contine acele 3 interogari cu rezultate numerice (grafice) - dupa rulare graficele vor fi salvate in folderul graphs_output
 
-rezultate_vizuale.py contine acele 3 interogari cu rezultate numerice (grafice)
-    - dupa rulare graficele vor fi salvate in folderul graphs_output
-
-rezultate_numerice.py contine acele 3 interogari cu rezultate numerice, plus argumentare rezultate cu JSON
-    - dupa rulare rezultatele json vor fi salvate in folderul json_reports
+rezultate_numerice.py contine acele 3 interogari cu rezultate numerice, plus argumentare rezultate cu JSON - dupa rulare rezultatele json vor fi salvate in folderul json_reports
 
 In raport, interogarile sunt explicate in sectiunea "Obiective Analitice și Explicația Rapoartelor DWH",
 adica, in documentul Word, faceti ctrl + f si copy-paste "Obiective Analitice și Explicația Rapoartelor DWH",
 pentru a gasi mai repede.
+
+pip install pandas sqlalchemy matplotlib pyodbc
