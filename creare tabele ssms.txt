@@ -1,0 +1,62 @@
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DimUser]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[DimUser] (
+        user_id INT PRIMARY KEY IDENTITY(1,1),
+        nume NVARCHAR(255) NOT NULL UNIQUE,
+        created_at INT NOT NULL
+    );
+END
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[products]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[products] (
+        product_id INT PRIMARY KEY IDENTITY(1,1),
+        name NVARCHAR(255) NOT NULL,
+        price REAL NOT NULL
+    );
+END
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DimTime]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[DimTime] (
+        time_id INT PRIMARY KEY,
+        full_date DATE NOT NULL UNIQUE, 
+        quarter INT NOT NULL,
+        year INT NOT NULL,
+        is_weekend INT NOT NULL
+    );
+END
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[orders]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[orders] (
+        order_id INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+        order_public_id NVARCHAR(50) NOT NULL,
+        user_id INT,
+        products NVARCHAR(MAX) NOT NULL, 
+        order_status NVARCHAR(50) NOT NULL,
+        created_at INT NOT NULL
+    );
+END
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FactOrderItems]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[FactOrderItems] (
+        fact_id INT PRIMARY KEY IDENTITY(1,1), 
+        order_id INT NOT NULL,     
+        user_id INT NOT NULL,      
+        product_id INT NOT NULL,   
+        time_id INT NOT NULL,      
+        
+        quantity_ordered INT NOT NULL,
+        sales_amount REAL NOT NULL,        
+        discount_amount REAL NOT NULL,     
+        unit_cost REAL NOT NULL,           
+        profit_margin REAL NOT NULL,       
+        
+        FOREIGN KEY (order_id) REFERENCES orders(order_id),
+        FOREIGN KEY (user_id) REFERENCES DimUser(user_id),
+        FOREIGN KEY (product_id) REFERENCES products(product_id),
+        FOREIGN KEY (time_id) REFERENCES DimTime(time_id),
+    );
+END
